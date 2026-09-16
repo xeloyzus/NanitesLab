@@ -2,12 +2,15 @@
 
 from psycopg import AsyncConnection
 
+from .. import demo
+from ..core.config import settings
 from ..schemas import Building, HistoryPoint, HistoryResponse, Series
 
 # Supported range presets -> the ``time_bucket`` used to downsample the series.
 RANGES = {
     "1h": "5 minutes",
     "24h": "15 minutes",
+    "48h": "30 minutes",
     "7d": "1 hour",
     "30d": "6 hours",
 }
@@ -24,6 +27,9 @@ async def get_history(
     bucket = RANGES.get(range_)
     if bucket is None:
         raise ValueError(f"unsupported range {range_!r}; choose one of {sorted(RANGES)}")
+
+    if settings.demo_mode:
+        return demo.get_history(building_id, range_)
 
     async with db.cursor() as cur:
         await cur.execute(

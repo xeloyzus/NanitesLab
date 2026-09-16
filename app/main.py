@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .db.database import pool
+from .core.config import settings
 from .internal import health
 from .routers import buildings, history, pages
 
@@ -23,9 +24,12 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Open the pool before serving and close it cleanly on shutdown.
-    await pool.open(wait=True)
+    # In demo mode there is no database, so skip the pool entirely.
+    if not settings.demo_mode:
+        await pool.open(wait=True)
     yield
-    await pool.close()
+    if not settings.demo_mode:
+        await pool.close()
 
 
 app = FastAPI(title="NanitesLab API", version="1.0.0", lifespan=lifespan)

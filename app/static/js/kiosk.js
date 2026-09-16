@@ -1,43 +1,17 @@
 /**
- * NanitesLab kiosk (large-TV) dashboard.
- *
- * Four rotating views (Overview / Trends / Power / Rooms) plus ambient
- * whole-screen colouring driven by the worst CO₂ reading. Data is fetched
- * once and refreshed periodically.
+ * NanitesLab kiosk (large-TV) dashboard — DOM + rendering.
+ * Pure logic lives in kiosk-core.js (KioskCore).
  */
 
 const KIOSK_ROTATE_MS = 25000;
 const KIOSK_REFRESH_MS = 5 * 60 * 1000;
 
+const K = window.KioskCore;
+
 let kioskState = null;
 let kioskView = 0;
 let kioskCharts = [];
-
-/* ---- CO₂ thresholds / colour ---- */
-function co2Color(ppm) {
-  if (ppm <= 800) return "#69db7c";
-  if (ppm <= 1200) return "#ffd43b";
-  return "#ff6b6b";
-}
-function co2Status(ppm) {
-  if (ppm <= 800) return { label: "GOOD", cls: "good" };
-  if (ppm <= 1200) return { label: "FAIR", cls: "fair" };
-  return { label: "POOR", cls: "poor" };
-}
-
-/* ---- Small helpers ---- */
-function avg(nums) {
-  if (!nums.length) return null;
-  return nums.reduce((a, b) => a + b, 0) / nums.length;
-}
-function fmt(value, decimals) {
-  if (value == null || Number.isNaN(value)) return "—";
-  return Number(value).toFixed(decimals);
-}
-function hexToRgba(hex, alpha) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
-}
+let trendsRange = "48h";
 
 /* ---- Data ---- */
 async function kioskLoad() {
@@ -46,143 +20,99 @@ async function kioskLoad() {
   for (const b of buildings) {
     const [current, history] = await Promise.all([
       getCurrent(b.id),
-      getHistory(b.id, "24h"),
+      getHistory(b.id, "48h"),
     ]);
     items.push({ building: b, current, history });
   }
   return items;
 }
 
-/** Average a per-device metric series into one building-level series. */
-function aggregateSeries(history, metric) {
-  const byTime = new Map();
-  for (const s of history.series) {
-    if (s.metric !== metric) continue;
-    for (const p of s.points) {
-      if (!byTime.has(p.time)) byTime.set(p.time, []);
-      byTime.get(p.time).push(p.value);
-    }
+async function kioskRefresh() {
+  try {
+    kioskState = K.kioskBuild(await kioskLoad());
+    await renderAll();
+  } catch (err) {
+    console.error("Kiosk data load failed:", err);
   }
-  return [...byTime.entries()]
-    .map(([time, values]) => ({ time, value: avg(values) }))
-    .sort((a, b) => new Date(a.time) - new Date(b.time));
 }
 
-/** Build the in-memory state used by every view. */
-function kioskBuild(items) {
-  const buildings = items.map(({ building, current, history }) => {
-    const co2s = [], temps = [], hums = [];
-    let currentSum = 0, totalAh = 0;
-    for (const s of current.sensors) {
-      const r = s.readings;
-      if (s.type === "am103") {
-        if (r.co2 != null) co2s.push(r.co2);
-        if (r.temperature != null) temps.push(r.temperature);
-        if (r.humidity != null) hums.push(r.humidity);
-      } else if (s.type === "ct305") {
-        currentSum += (r.current_1 || 0) + (r.current_2 || 0) + (r.current_3 || 0);
-        totalAh += (r.total_1 || 0) + (r.total_2 || 0) + (r.total_3 || 0);
-      }
+/* ---- Motion: animated numbers ---- */
+function animateValue(el, to, decimals, suffix) {
+  const duration = 900;
+  const start = performance.now();
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = 1 - Math.pow(1 - t, 3);
+    const val = to * eased;
+    el.textContent = (decimals > 0 ? val.toFixed(decimals) : Math.round(val)) + suffix;
+    if (t < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+function animateNumbers(container) {
+  for (const el of container.querySelectorAll("[data-value]")) {
+    const raw = el.dataset.value;
+    const decimals = parseInt(el.dataset.decimals || "0", 10);
+    const suffix = el.dataset.suffix || "";
+    if (raw === "" || raw == null || Number.isNaN(Number(raw))) {
+      el.textContent = "—";
+      continue;
     }
-    return {
-      building,
-      current,
-      summary: {
-        co2: avg(co2s),
-        temperature: avg(temps),
-        humidity: avg(hums),
-        current: currentSum,
-        totalAh,
-        co2Series: aggregateSeries(history, "co2"),
-        tempSeries: aggregateSeries(history, "temperature"),
-      },
-    };
-  });
-  const worst = Math.max(0, ...buildings.map((b) => b.summary.co2 || 0));
-  return { buildings, worst };
+    animateValue(el, Number(raw), decimals, suffix);
+  }
 }
 
-/* ---- Radial gauge (inline SVG) ---- */
-function gaugeSvg(value) {
-  const v = value == null ? 0 : value;
-  const min = 400, max = 2000, r = 80;
-  const semicirc = Math.PI * r;
-  const frac = Math.min(1, Math.max(0, (v - min) / (max - min)));
-  const color = co2Color(v);
-  const filled = frac * semicirc;
-  const arc = "M 20 100 A 80 80 0 0 1 180 100";
-  return (
-    `<svg viewBox="0 0 200 124" class="gauge" aria-hidden="true">` +
-    `<path d="${arc}" fill="none" stroke="#2b3442" stroke-width="14" stroke-linecap="round"/>` +
-    `<path d="${arc}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round" ` +
-    `stroke-dasharray="${filled} ${semicirc}"/>` +
-    `<text x="100" y="86" class="gauge-value" text-anchor="middle">${Math.round(v)}</text>` +
-    `<text x="100" y="112" class="gauge-unit" text-anchor="middle">ppm CO₂</text>` +
-    `</svg>`
-  );
+/* ---- Overview ---- */
+function renderHero() {
+  const el = document.getElementById("hero");
+  if (!kioskState || !kioskState.worstBuilding) { el.innerHTML = ""; return; }
+  const wb = kioskState.worstBuilding;
+  const st = K.co2Status(wb.summary.co2 || 0);
+  const dotColor = st.cls === "good" ? "#69db7c" : st.cls === "fair" ? "#ffd43b" : "#ff6b6b";
+  const deltas = kioskState.buildings.map((b) => {
+    const d = b.summary.co2Delta;
+    if (d == null) return "";
+    const cls = d > 1 ? "up" : d < -1 ? "down" : "flat";
+    return `<span class="delta ${cls}">${escapeHtml(b.building.name)} ${d > 0 ? "+" : ""}${Math.round(d)}</span>`;
+  }).join("");
+  el.innerHTML =
+    `<div class="hero-main">` +
+    `<span class="hero-dot" style="background:${dotColor}"></span>` +
+    `<span class="hero-status ${st.cls}">${st.label}</span>` +
+    `<span class="hero-text">worst air: <strong>${escapeHtml(wb.building.name)}</strong> <strong>${Math.round(wb.summary.co2 || 0)} ppm</strong></span>` +
+    `</div>` +
+    `<div class="hero-deltas">${deltas}</div>`;
 }
 
-function trendArrow(series) {
-  if (!series || series.length < 2) return "";
-  const first = series[0].value;
-  const last = series[series.length - 1].value;
-  if (last > first + 1) return "▲";
-  if (last < first - 1) return "▼";
-  return "→";
-}
-
-/* ---- Shared line-chart options ---- */
-function lineChartOptions() {
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    interaction: { mode: "nearest", intersect: false },
-    plugins: {
-      legend: { position: "bottom", labels: { color: "#ced4da", font: { size: 14 } } },
-    },
-    scales: {
-      x: {
-        type: "linear",
-        ticks: {
-          color: "#868e96",
-          font: { size: 13 },
-          callback: (v) => new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        },
-        grid: { color: "#2b3442" },
-      },
-      y: { ticks: { color: "#868e96", font: { size: 13 } }, grid: { color: "#2b3442" } },
-    },
-  };
-}
-
-/* ---- View renderers ---- */
 function renderOverview() {
   const container = document.querySelector('[data-view="overview"] .buildings');
   container.innerHTML = "";
   for (const { building, summary } of kioskState.buildings) {
-    const st = co2Status(summary.co2 || 0);
+    const st = K.co2Status(summary.co2 || 0);
     const card = document.createElement("div");
-    card.className = "building";
+    card.className = "building" + (summary.stale ? " stale" : "");
     card.innerHTML =
       `<div class="building-name">${escapeHtml(building.name)}</div>` +
-      gaugeSvg(summary.co2) +
-      `<div class="status ${st.cls}">${st.label} ${trendArrow(summary.co2Series)}</div>` +
+      (summary.stale ? `<span class="stale-badge">STALE</span>` : "") +
+      K.gaugeSvg(summary.co2) +
+      `<div class="status ${st.cls}">${st.label} ${K.trendArrow(summary.co2Series)}</div>` +
       `<div class="kpis">` +
-      `<div class="kpi"><span class="val">${fmt(summary.temperature, 1)}°</span><span class="lbl">Temp</span></div>` +
-      `<div class="kpi"><span class="val">${fmt(summary.humidity, 0)}%</span><span class="lbl">Humidity</span></div>` +
-      `<div class="kpi"><span class="val">${fmt(summary.current, 1)} A</span><span class="lbl">Current</span></div>` +
+      `<div class="kpi"><span class="val" data-value="${summary.temperature ?? ""}" data-decimals="1" data-suffix="°">—</span><span class="lbl">Temp</span></div>` +
+      `<div class="kpi"><span class="val" data-value="${summary.humidity ?? ""}" data-decimals="0" data-suffix="%">—</span><span class="lbl">Humidity</span></div>` +
+      `<div class="kpi"><span class="val" data-value="${summary.current}" data-decimals="1" data-suffix=" A">—</span><span class="lbl">Current</span></div>` +
       `</div>` +
       `<canvas class="sparkline"></canvas>`;
     container.appendChild(card);
     renderSparkline(card.querySelector(".sparkline"), summary.co2Series);
   }
   renderOverviewChart();
+  animateNumbers(container);
 }
 
 function renderSparkline(canvas, series) {
   if (!series || series.length < 2) return;
-  const color = co2Color(series[series.length - 1].value);
+  const color = K.co2Color(series[series.length - 1].value);
   kioskCharts.push(new Chart(canvas, {
     type: "line",
     data: {
@@ -202,8 +132,8 @@ function renderOverviewChart() {
   const datasets = kioskState.buildings.map(({ building, summary }) => ({
     label: building.name,
     data: (summary.co2Series || []).map((p) => ({ x: new Date(p.time).getTime(), y: p.value })),
-    borderColor: co2Color(summary.co2 || 0),
-    backgroundColor: co2Color(summary.co2 || 0),
+    borderColor: K.co2Color(summary.co2 || 0),
+    backgroundColor: K.co2Color(summary.co2 || 0),
     borderWidth: 3,
     pointRadius: 0,
     tension: 0.3,
@@ -211,30 +141,68 @@ function renderOverviewChart() {
   kioskCharts.push(new Chart(canvas, { type: "line", data: { datasets }, options: lineChartOptions() }));
 }
 
-function renderTrends() {
+/* ---- Chart options ---- */
+function lineChartOptions() {
+  return {
+    responsive: true, maintainAspectRatio: false, animation: false,
+    interaction: { mode: "nearest", intersect: false },
+    plugins: { legend: { position: "bottom", labels: { color: "#ced4da", font: { size: 14 } } } },
+    scales: {
+      x: {
+        type: "linear",
+        ticks: { color: "#868e96", font: { size: 13 }, callback: (v) => new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+        grid: { color: "#2b3442" },
+      },
+      y: { ticks: { color: "#868e96", font: { size: 13 } }, grid: { color: "#2b3442" } },
+    },
+  };
+}
+
+/* ---- Trends (with range switcher) ---- */
+async function getTrendsData() {
+  const out = {};
+  if (trendsRange === "48h") {
+    for (const { building, summary } of kioskState.buildings) {
+      out[building.id] = { co2Series: summary.co2Series, tempSeries: summary.tempSeries, humSeries: summary.humSeries };
+    }
+    return out;
+  }
+  for (const { building } of kioskState.buildings) {
+    const history = await getHistory(building.id, trendsRange);
+    out[building.id] = {
+      co2Series: K.aggregateSeries(history, "co2"),
+      tempSeries: K.aggregateSeries(history, "temperature"),
+      humSeries: K.aggregateSeries(history, "humidity"),
+    };
+  }
+  return out;
+}
+
+async function renderTrends() {
   const container = document.querySelector('[data-view="trends"] .trends-grid');
+  const data = await getTrendsData();
   container.innerHTML = "";
   const panels = [
-    { title: "CO₂ (ppm)", key: "co2Series", colorFn: (s) => co2Color(s.co2 || 0) },
+    { title: "CO₂ (ppm)", key: "co2Series", full: true, colorFn: (s) => K.co2Color(s.co2 || 0) },
     { title: "Temperature (°C)", key: "tempSeries", colorFn: () => "#ff6b6b" },
+    { title: "Humidity (%)", key: "humSeries", colorFn: () => "#4dabf7" },
   ];
   for (const panel of panels) {
     const block = document.createElement("div");
-    block.className = "trend-panel";
+    block.className = "trend-panel" + (panel.full ? " trend-full" : "");
     block.innerHTML = `<h3>${panel.title}</h3><div class="chart-wrap"><canvas></canvas></div>`;
     container.appendChild(block);
     const datasets = kioskState.buildings.map(({ building, summary }) => ({
       label: building.name,
-      data: (summary[panel.key] || []).map((p) => ({ x: new Date(p.time).getTime(), y: p.value })),
+      data: ((data[building.id] && data[building.id][panel.key]) || []).map((p) => ({ x: new Date(p.time).getTime(), y: p.value })),
       borderColor: panel.colorFn(summary),
-      borderWidth: 3,
-      pointRadius: 0,
-      tension: 0.3,
+      borderWidth: 3, pointRadius: 0, tension: 0.3,
     }));
     kioskCharts.push(new Chart(block.querySelector("canvas"), { type: "line", data: { datasets }, options: lineChartOptions() }));
   }
 }
 
+/* ---- Power ---- */
 function phaseValue(current, metric) {
   const ct = (current.sensors || []).find((s) => s.type === "ct305");
   return ct && ct.readings[metric] != null ? ct.readings[metric] : 0;
@@ -257,41 +225,58 @@ function renderPower() {
       html +=
         `<div class="phase"><span class="lbl">${p.label}</span>` +
         `<div class="bar-track"><div class="bar" style="width:${Math.round((p.value / max) * 100)}%;background:${p.color}"></div></div>` +
-        `<span class="val">${fmt(p.value, 1)} A</span></div>`;
+        `<span class="val" data-value="${p.value}" data-decimals="1" data-suffix=" A">—</span></div>`;
     }
-    html += `<div class="power-total">Total <span class="num">${fmt(summary.current, 1)} A</span> · <span class="num">${fmt(summary.totalAh, 0)} Ah</span></div>`;
+    html += `<div class="power-total">Total <span class="num" data-value="${summary.current}" data-decimals="1" data-suffix=" A">—</span> · <span class="num" data-value="${summary.totalAh}" data-decimals="0" data-suffix=" Ah">—</span></div>`;
     panel.innerHTML = html;
     container.appendChild(panel);
   }
+  animateNumbers(container);
 }
 
+/* ---- Rooms heatmap ---- */
 function renderRooms() {
   const container = document.querySelector('[data-view="rooms"] .rooms-grid');
   container.innerHTML = "";
+  const rooms = [];
   for (const { current } of kioskState.buildings) {
     for (const s of current.sensors) {
       if (s.type !== "am103") continue;
-      const co2 = s.readings.co2;
-      const color = co2Color(co2 || 0);
-      const cell = document.createElement("div");
-      cell.className = "room";
-      cell.style.setProperty("--room-color", color);
-      cell.innerHTML =
-        `<span class="room-name">${escapeHtml(s.label)}</span>` +
-        `<span class="room-val">${co2 == null ? "—" : Math.round(co2)}</span>`;
-      container.appendChild(cell);
+      rooms.push({ name: s.label, co2: s.readings.co2 ?? null });
     }
+  }
+  rooms.sort((a, b) => (b.co2 ?? -1) - (a.co2 ?? -1));
+  for (const room of rooms) {
+    const color = room.co2 == null ? "#2b3442" : K.co2Gradient(room.co2);
+    const cell = document.createElement("div");
+    cell.className = "room";
+    cell.style.setProperty("--room-color", color);
+    cell.style.setProperty("--room-bg", room.co2 == null ? "rgba(43,52,66,0.2)" : K.hexToRgba(color, 0.16));
+    cell.innerHTML =
+      `<span class="room-name">${escapeHtml(room.name)}</span>` +
+      `<span class="room-val">${room.co2 == null ? "—" : Math.round(room.co2)}</span>`;
+    container.appendChild(cell);
   }
 }
 
-/* ---- Ambient theming + footer ---- */
+/* ---- Ambient theming + status ---- */
 function applyAmbient() {
-  const color = co2Color(kioskState.worst);
+  const color = K.co2Color(kioskState.worst);
   document.documentElement.style.setProperty("--status-color", color);
-  document.documentElement.style.setProperty(
-    "--status-bg",
-    `linear-gradient(180deg, ${hexToRgba(color, 0.14)}, var(--bg) 55%)`
-  );
+  document.documentElement.style.setProperty("--status-bg", `linear-gradient(180deg, ${K.hexToRgba(color, 0.14)}, var(--bg) 55%)`);
+}
+
+function renderHeaderStatus() {
+  const el = document.getElementById("updated");
+  const live = document.querySelector(".live");
+  if (!el) return;
+  const ages = kioskState.buildings.map((b) => b.summary.ageMinutes).filter((a) => a != null);
+  if (!ages.length) { el.textContent = ""; el.className = ""; return; }
+  const maxAge = Math.max(...ages);
+  const stale = maxAge > K.STALE_MINUTES;
+  el.textContent = stale ? `Updated ${Math.round(maxAge)}m ago · STALE` : `Updated ${Math.round(maxAge)}m ago`;
+  el.className = stale ? "stale" : "fresh";
+  if (live) live.classList.toggle("stale", stale);
 }
 
 function updatePeak() {
@@ -320,42 +305,75 @@ function startClock() {
   setInterval(tick, 1000);
 }
 
-/* ---- Rotation ---- */
+/* ---- Rotation + countdown ---- */
 function rotateView() {
-  document.querySelectorAll(".view").forEach((v, i) => {
-    v.classList.toggle("active", i === kioskView);
-  });
+  document.querySelectorAll(".view").forEach((v, i) => v.classList.toggle("active", i === kioskView));
   kioskView = (kioskView + 1) % 4;
+  const bar = document.getElementById("rotate-progress");
+  if (bar) {
+    bar.style.transition = "none";
+    bar.style.width = "0%";
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      bar.style.transition = `width ${KIOSK_ROTATE_MS}ms linear`;
+      bar.style.width = "100%";
+    }));
+  }
 }
 
+/* ---- Day/night dimming + burn-in shift ---- */
+function applyDayNight() {
+  const hour = new Date().getHours();
+  document.body.classList.toggle("night", hour < 7 || hour >= 22);
+}
+
+function startBurnInShift() {
+  const offsets = [[0, 0], [3, 2], [-3, 2], [2, -3], [0, 0]];
+  let i = 0;
+  setInterval(() => {
+    const [x, y] = offsets[i % offsets.length];
+    const kiosk = document.getElementById("kiosk");
+    if (kiosk) kiosk.style.transform = `translate(${x}px, ${y}px)`;
+    i += 1;
+  }, 3 * 60 * 1000);
+}
+
+/* ---- Chart lifecycle ---- */
 function destroyCharts() {
   for (const c of kioskCharts) c.destroy();
   kioskCharts = [];
 }
 
-function renderAll() {
+/* ---- Wiring ---- */
+function wireTrendsRange() {
+  document.querySelectorAll("[data-trends-range]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      document.querySelectorAll("[data-trends-range]").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      trendsRange = btn.dataset.trendsRange;
+      await renderAll();
+    });
+  });
+}
+
+async function renderAll() {
   destroyCharts();
+  renderHero();
   renderOverview();
-  renderTrends();
+  await renderTrends();
   renderPower();
   renderRooms();
   applyAmbient();
+  renderHeaderStatus();
   updatePeak();
-}
-
-/* ---- Entry point ---- */
-async function kioskRefresh() {
-  try {
-    kioskState = kioskBuild(await kioskLoad());
-    renderAll();
-  } catch (err) {
-    console.error("Kiosk data load failed:", err);
-  }
 }
 
 async function initKiosk() {
   document.body.classList.add("kiosk");
   startClock();
+  wireTrendsRange();
+  applyDayNight();
+  setInterval(applyDayNight, 60 * 1000);
+  startBurnInShift();
   await kioskRefresh();
   rotateView();
   setInterval(rotateView, KIOSK_ROTATE_MS);

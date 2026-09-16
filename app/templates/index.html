@@ -11,24 +11,35 @@
 <header class="kiosk-header">
   <div class="brand">NanitesLab</div>
   <div class="subtitle">Indoor climate &amp; power</div>
+  <span id="updated" class="fresh"></span>
   <div class="clock">
     <span id="clock-time"></span>
     <span id="clock-date"></span>
   </div>
   <div class="live"><span class="dot"></span>LIVE</div>
 </header>
+<div class="rotate-bar"><div id="rotate-progress"></div></div>
 
 <main id="kiosk">
   <section class="view" data-view="overview">
+    <div id="hero"></div>
     <div class="buildings"></div>
     <div class="overview-chart">
-      <h2>CO₂ — last 24 hours</h2>
+      <h2>CO₂ — last 48 hours</h2>
       <div class="chart-wrap"><canvas id="overview-chart-canvas"></canvas></div>
     </div>
   </section>
 
   <section class="view" data-view="trends">
-    <h2>Trends — last 24 hours</h2>
+    <div class="trends-head">
+      <h2>Trends</h2>
+      <nav class="range">
+        <button data-trends-range="24h">24h</button>
+        <button data-trends-range="48h" class="active">48h</button>
+        <button data-trends-range="7d">7d</button>
+        <button data-trends-range="30d">30d</button>
+      </nav>
+    </div>
     <div class="trends-grid"></div>
   </section>
 
@@ -39,6 +50,11 @@
 
   <section class="view" data-view="rooms">
     <h2>Rooms — CO₂ by sensor</h2>
+    <div class="rooms-legend">
+      <span class="lbl">400</span>
+      <div class="legend-bar"></div>
+      <span class="lbl">2000 ppm</span>
+    </div>
     <div class="rooms-grid"></div>
   </section>
 </main>
@@ -51,7 +67,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/kiosk-core.js"></script>
 <script src="/static/js/kiosk.js"></script>
 <script>initKiosk();</script>
 {% endblock %}
-

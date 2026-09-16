@@ -4,11 +4,15 @@ from datetime import datetime
 
 from psycopg import AsyncConnection
 
+from .. import demo
+from ..core.config import settings
 from ..schemas import Building, CurrentResponse, Sensor
 
 
 async def list_buildings(db: AsyncConnection) -> list[Building]:
     """Return every building (id, name, slug)."""
+    if settings.demo_mode:
+        return demo.list_buildings()
     async with db.cursor() as cur:
         await cur.execute("SELECT id, name, slug FROM buildings ORDER BY id")
         rows = await cur.fetchall()
@@ -20,6 +24,8 @@ async def get_current(db: AsyncConnection, building_id: int) -> CurrentResponse 
 
     Returns ``None`` when the building does not exist.
     """
+    if settings.demo_mode:
+        return demo.get_current(building_id)
     async with db.cursor() as cur:
         await cur.execute(
             "SELECT id, name, slug FROM buildings WHERE id = %s", (building_id,)

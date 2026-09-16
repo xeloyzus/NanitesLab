@@ -8,6 +8,7 @@ def test_index_template_renders():
     assert "NanitesLab" in html
     assert "initKiosk" in html
     assert "kiosk.js" in html
+    assert "kiosk-core.js" in html
     assert "chart.js" in html  # Chart.js is loaded only on the kiosk page
 
 

@@ -1,15 +1,22 @@
 /* NanitesLab — base styles + mobile view. Kiosk (TV) styles live in kiosk.css. */
 
 :root {
-  --bg: #12161d;
-  --panel: #1b222c;
-  --line: #2b3442;
-  --text: #e6ebf1;
-  --muted: #8b95a5;
-  --accent: #4dabf7;
-  /* Kiosk ambient status colour (set/overridden by kiosk.js). */
+  --bg: #0b1220;
+  --bg-elevated: #111c2d;
+  --panel: rgba(17, 26, 39, 0.9);
+  --panel-strong: #152334;
+  --panel-soft: #1b2a3a;
+  --line: rgba(148, 163, 184, 0.18);
+  --text: #edf3ff;
+  --muted: #9aa9bd;
+  --muted-strong: #c9d5ea;
+  --accent: #7dd3fc;
+  --good: #5ae29d;
+  --fair: #f8d36a;
+  --poor: #ff7b7b;
+  --shadow: 0 18px 40px rgba(3, 7, 18, 0.38);
   --status-color: #69db7c;
-  --status-bg: var(--bg);
+  --status-bg: linear-gradient(180deg, rgba(105, 219, 124, 0.14), var(--bg) 60%);
 }
 
 * {
@@ -18,56 +25,61 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top, rgba(125, 211, 252, 0.08), transparent 30%),
+    linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
   color: var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Header (mobile). */
 header {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 0.9rem 1.4rem;
-  background: var(--panel);
+  background: rgba(17, 26, 39, 0.82);
   border-bottom: 1px solid var(--line);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.18);
   position: sticky;
   top: 0;
   z-index: 10;
+  backdrop-filter: blur(8px);
 }
+
 header h1 {
   font-size: 1.25rem;
   margin: 0;
 }
+
 #updated {
   margin-left: auto;
   color: var(--muted);
   font-size: 0.85rem;
 }
 
-/* Mobile layout. */
 #mobile {
   padding: 1rem;
   max-width: 640px;
   margin-inline: auto;
 }
+
 #mobile .building {
   margin-bottom: 1rem;
 }
 
-/* Building cards. */
 .building {
-  background: var(--panel);
+  background: linear-gradient(180deg, rgba(20, 31, 46, 0.96), rgba(15, 23, 34, 0.94));
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 1.1rem;
+  box-shadow: var(--shadow);
 }
+
 .building h2 {
   margin: 0 0 0.8rem;
   font-size: 1.05rem;
 }
 
-/* Sensor list (mobile). */
 .sensor-list {
   list-style: none;
   margin: 0;
@@ -75,46 +87,56 @@ header h1 {
   display: grid;
   gap: 0.6rem;
 }
+
 .sensor {
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  background: rgba(148, 163, 184, 0.02);
 }
+
 .sensor-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 0.5rem;
 }
+
 .sensor-head span:first-child {
   font-weight: 600;
 }
+
 .badge {
   font-size: 0.65rem;
   letter-spacing: 0.04em;
   color: var(--muted);
   border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  padding: 0.18rem 0.5rem;
+  background: rgba(148, 163, 184, 0.04);
 }
+
 .metrics {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
 }
+
 .metric {
   display: flex;
   flex-direction: column;
 }
+
 .metric em {
   font-style: normal;
   font-size: 0.72rem;
   color: var(--muted);
 }
+
 .metric strong {
   font-size: 1.05rem;
 }
 
 .error {
-  color: #ff8787;
+  color: var(--poor);
 }
