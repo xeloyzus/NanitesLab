@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}NanitesLab — Indoor climate{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block header %}
+<nav class="range">
+  <button data-range="1h">1h</button>
+  <button data-range="24h" class="active">24h</button>
+  <button data-range="7d">7d</button>
+  <button data-range="30d">30d</button>
+</nav>
+{% endblock %}
+
+{% block content %}
+<main id="dashboard"></main>
+{% endblock %}
+
+{% block scripts %}
+<script>initDashboard();</script>
+{% endblock %}

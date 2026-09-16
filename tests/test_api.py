@@ -15,3 +15,20 @@ def test_openapi_paths():
 
 def test_app_title():
     assert app.title == "NanitesLab API"
+
+
+def test_frontend_wiring():
+    from app.routers import pages
+
+    # The two HTML pages are registered on the pages router.
+    assert {r.path for r in pages.router.routes} == {"/", "/mobile"}
+
+    # Static assets are mounted at /static.
+    assert any(getattr(r, "path", None) == "/static" for r in app.routes)
+
+    # HTML pages are excluded from the JSON API schema.
+    api_paths = app.openapi()["paths"]
+    assert "/" not in api_paths
+    assert "/mobile" not in api_paths
+
+

@@ -33,18 +33,19 @@ naniteslab/
 ├── requirements-dev.txt    # test dependencies
 ├── run.sh                  # convenience launcher (VPS)
 ├── mosquitto/              # broker config
-├── app/                    # FastAPI backend (layered)
+├── app/                    # FastAPI backend + frontend (layered)
 │   ├── main.py             # app entrypoint
 │   ├── dependencies.py     # get_db dependency
 │   ├── core/               # settings (config.py)
 │   ├── db/                 # connection pool + SQL migrations/
 │   ├── internal/           # ops endpoints (health)
-│   ├── routers/            # thin HTTP layer
+│   ├── routers/            # thin HTTP layer (API + pages)
 │   ├── schemas/            # Pydantic response models
-│   └── services/           # business logic
+│   ├── services/           # business logic
+│   ├── static/             # CSS / JS / images
+│   └── templates/          # Jinja2 templates (base/index/mobile)
 ├── ingest/                 # MQTT -> decode -> TimescaleDB
 ├── tests/                  # pytest suite
-├── frontend/               # static dashboard (HTML/CSS/JS + Chart.js)
 ├── kiosk/                  # Raspberry Pi kiosk service + watchdog
 ├── hardware/               # sensor placement + gateway config
 ├── docs/                   # application + Driftsenheten dialogue
@@ -67,7 +68,8 @@ naniteslab/
    ```
 
    Caddy obtains a TLS certificate automatically. The dashboard is served at
-   `https://<DOMAIN>/` and the API at `https://<DOMAIN>/api/...`.
+   `https://<DOMAIN>/`, the mobile view at `https://<DOMAIN>/mobile`, and the
+   API at `https://<DOMAIN>/api/...`.
 
 3. **Register devices** as sensors join the network (see
    [`hardware/gateway-config/README.md`](hardware/gateway-config/README.md)):

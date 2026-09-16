@@ -100,7 +100,6 @@ services:
       DOMAIN: ${DOMAIN:?set DOMAIN in .env}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./frontend:/srv/frontend:ro
       - caddy-data:/data
       - caddy-config:/config
 

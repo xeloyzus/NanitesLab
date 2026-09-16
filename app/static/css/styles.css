@@ -1,0 +1,162 @@
+/* NanitesLab dashboard — shared styles (kiosk + mobile). */
+
+:root {
+  --bg: #12161d;
+  --panel: #1b222c;
+  --line: #2b3442;
+  --text: #e6ebf1;
+  --muted: #8b95a5;
+  --accent: #4dabf7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Header (shared) */
+header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.4rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+header h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+#updated {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Range selector (kiosk only) */
+.range {
+  display: flex;
+  gap: 0.35rem;
+}
+.range button {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.range button.active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: rgba(77, 171, 247, 0.12);
+}
+
+/* Kiosk layout: grid of building cards */
+#dashboard {
+  padding: 1.2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.2rem;
+}
+
+/* Mobile layout: single column */
+#mobile {
+  padding: 1rem;
+  max-width: 640px;
+  margin-inline: auto;
+}
+#mobile .building {
+  margin-bottom: 1rem;
+}
+
+/* Building cards */
+.building {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.1rem;
+}
+.building h2 {
+  margin: 0 0 0.8rem;
+  font-size: 1.05rem;
+}
+
+/* Sensor list */
+.sensor-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.sensor {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+}
+.sensor-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.sensor-head span:first-child {
+  font-weight: 600;
+}
+.badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.1rem 0.4rem;
+}
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+.metric {
+  display: flex;
+  flex-direction: column;
+}
+.metric em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.metric strong {
+  font-size: 1.05rem;
+}
+
+/* Charts (kiosk only) */
+.charts {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.9rem;
+}
+.chart-block h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.chart-wrap {
+  height: 160px;
+  position: relative;
+}
+
+.error {
+  color: #ff8787;
+}

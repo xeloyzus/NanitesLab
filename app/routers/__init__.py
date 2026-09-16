@@ -1,1 +1,1 @@
-"""API route modules."""
+"""HTTP route modules (JSON API + HTML pages)."""

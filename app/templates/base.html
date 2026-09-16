@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}NanitesLab{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header>
+    <h1>NanitesLab</h1>
+    {% block header %}{% endblock %}
+    <span id="updated"></span>
+  </header>
+  {% block content %}{% endblock %}
+  <script src="/static/js/api-client.js"></script>
+  <script src="/static/js/charts.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
