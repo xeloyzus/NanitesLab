@@ -6,7 +6,8 @@ from app.routers.pages import templates
 def test_index_template_renders():
     html = templates.get_template("index.html").render()
     assert "NanitesLab" in html
-    assert "initDashboard" in html
+    assert "initKiosk" in html
+    assert "kiosk.js" in html
     assert "chart.js" in html  # Chart.js is loaded only on the kiosk page
 
 

@@ -4,21 +4,54 @@
 
 {% block head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-{% endblock %}
-
-{% block header %}
-<nav class="range">
-  <button data-range="1h">1h</button>
-  <button data-range="24h" class="active">24h</button>
-  <button data-range="7d">7d</button>
-  <button data-range="30d">30d</button>
-</nav>
+<link rel="stylesheet" href="/static/css/kiosk.css">
 {% endblock %}
 
 {% block content %}
-<main id="dashboard"></main>
+<header class="kiosk-header">
+  <div class="brand">NanitesLab</div>
+  <div class="subtitle">Indoor climate &amp; power</div>
+  <div class="clock">
+    <span id="clock-time"></span>
+    <span id="clock-date"></span>
+  </div>
+  <div class="live"><span class="dot"></span>LIVE</div>
+</header>
+
+<main id="kiosk">
+  <section class="view" data-view="overview">
+    <div class="buildings"></div>
+    <div class="overview-chart">
+      <h2>CO₂ — last 24 hours</h2>
+      <div class="chart-wrap"><canvas id="overview-chart-canvas"></canvas></div>
+    </div>
+  </section>
+
+  <section class="view" data-view="trends">
+    <h2>Trends — last 24 hours</h2>
+    <div class="trends-grid"></div>
+  </section>
+
+  <section class="view" data-view="power">
+    <h2>Electricity — live</h2>
+    <div class="power-grid"></div>
+  </section>
+
+  <section class="view" data-view="rooms">
+    <h2>Rooms — CO₂ by sensor</h2>
+    <div class="rooms-grid"></div>
+  </section>
+</main>
+
+<footer class="kiosk-footer">
+  <img src="/static/images/qr-code.svg" alt="QR code" class="qr">
+  <span>Scan for the live mobile view</span>
+  <span id="peak"></span>
+</footer>
 {% endblock %}
 
 {% block scripts %}
-<script>initDashboard();</script>
+<script src="/static/js/kiosk.js"></script>
+<script>initKiosk();</script>
 {% endblock %}
+

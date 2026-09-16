@@ -1,0 +1,302 @@
+/* NanitesLab — kiosk (large-TV) styles. */
+
+/* Whole-screen ambient tint driven by --status-color / --status-bg. */
+body.kiosk {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--status-bg);
+  transition: background 1.5s ease;
+}
+
+/* Header */
+.kiosk-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding: 1.2rem 2.5rem 0.8rem;
+}
+.kiosk-header .brand {
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+.kiosk-header .subtitle {
+  font-size: 1.4rem;
+  color: var(--muted);
+}
+.kiosk-header .clock {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.1;
+}
+.kiosk-header #clock-time {
+  font-size: 2.4rem;
+  font-weight: 600;
+}
+.kiosk-header #clock-date {
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+.kiosk-header .live {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+}
+.kiosk-header .live .dot {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: var(--status-color);
+  box-shadow: 0 0 10px var(--status-color);
+}
+
+/* Viewport + rotating views */
+#kiosk {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 2.5rem 1.2rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s ease;
+}
+.view.active {
+  opacity: 1;
+  visibility: visible;
+}
+.view > h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+.view > .buildings,
+.view > .trends-grid,
+.view > .power-grid,
+.view > .rooms-grid {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Overview */
+.buildings {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+}
+.building {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1.2rem;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+.building .building-name {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+}
+.gauge {
+  width: min(320px, 80%);
+}
+.gauge .gauge-value {
+  font-size: 3.6rem;
+  font-weight: 700;
+  fill: var(--text);
+}
+.gauge .gauge-unit {
+  font-size: 1.2rem;
+  fill: var(--muted);
+}
+.status {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.status.good { color: #69db7c; }
+.status.fair { color: #ffd43b; }
+.status.poor { color: #ff6b6b; }
+
+.kpis {
+  display: flex;
+  gap: 2rem;
+}
+.kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.kpi .val {
+  font-size: 2rem;
+  font-weight: 600;
+}
+.kpi .lbl {
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+.sparkline {
+  height: 5vh;
+  max-height: 64px;
+  width: 90%;
+}
+
+.overview-chart {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1.2rem;
+  padding: 1rem 1.2rem;
+  height: 30vh;
+  min-height: 200px;
+  margin-top: 1rem;
+}
+.overview-chart h2 {
+  font-size: 1.2rem;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+.overview-chart .chart-wrap {
+  position: relative;
+  height: calc(100% - 2rem);
+}
+
+/* Trends */
+.trends-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+}
+.trend-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1.2rem;
+  padding: 1rem 1.2rem;
+  position: relative;
+}
+.trend-panel h3 {
+  font-size: 1.3rem;
+  color: var(--muted);
+  margin: 0 0 0.5rem;
+}
+.trend-panel .chart-wrap {
+  position: relative;
+  height: calc(100% - 2.5rem);
+}
+
+/* Power */
+.power-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem;
+}
+.power-panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1.2rem;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+}
+.power-panel h3 {
+  font-size: 1.6rem;
+  margin: 0 0 1rem;
+}
+.phase {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+.phase .lbl {
+  width: 3rem;
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+.phase .bar-track {
+  flex: 1;
+  height: 2.2rem;
+  background: var(--line);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.phase .bar {
+  height: 100%;
+  border-radius: 0.5rem;
+  transition: width 1s ease;
+}
+.phase .val {
+  width: 6rem;
+  text-align: right;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.power-total {
+  margin-top: auto;
+  font-size: 1.6rem;
+}
+.power-total .num {
+  font-weight: 700;
+  font-size: 2.2rem;
+}
+
+/* Rooms heatmap */
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1rem;
+  align-content: start;
+  overflow: auto;
+}
+.room {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-left: 0.6rem solid var(--room-color, var(--line));
+  border-radius: 1rem;
+  padding: 1rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.room .room-name {
+  font-size: 1.4rem;
+}
+.room .room-val {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--room-color, var(--text));
+}
+
+/* Footer */
+.kiosk-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.7rem 2.5rem 1rem;
+  color: var(--muted);
+  font-size: 1.2rem;
+}
+.kiosk-footer .qr {
+  width: 56px;
+  height: 56px;
+  background: #fff;
+  border-radius: 0.4rem;
+  padding: 0.2rem;
+}
+#peak {
+  margin-left: auto;
+}
