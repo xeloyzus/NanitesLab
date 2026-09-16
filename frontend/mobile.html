@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NanitesLab</title>
+  <style>
+    :root {
+      --bg: #12161d;
+      --panel: #1b222c;
+      --line: #2b3442;
+      --text: #e6ebf1;
+      --muted: #8b95a5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      padding: 1rem;
+      max-width: 640px;
+      margin-inline: auto;
+    }
+    header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    header h1 { font-size: 1.25rem; margin: 0; }
+    #updated { margin-left: auto; color: var(--muted); font-size: 0.85rem; }
+
+    .building {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .building h2 { margin: 0 0 0.8rem; font-size: 1rem; }
+
+    .sensor-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+    .sensor { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.7rem; }
+    .sensor-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .sensor-head span:first-child { font-weight: 600; }
+    .badge { font-size: 0.65rem; letter-spacing: 0.04em; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0.1rem 0.4rem; }
+    .metrics { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+    .metric { display: flex; flex-direction: column; }
+    .metric em { font-style: normal; font-size: 0.72rem; color: var(--muted); }
+    .metric strong { font-size: 1.05rem; }
+
+    .error { color: #ff8787; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NanitesLab</h1>
+    <span id="updated"></span>
+  </header>
+  <main id="mobile"></main>
+
+  <script src="js/api-client.js"></script>
+  <script src="js/charts.js"></script>
+  <script>initMobile();</script>
+</body>
+</html>

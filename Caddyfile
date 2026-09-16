@@ -1,0 +1,14 @@
+# Caddy reverse proxy: automatic HTTPS + static dashboard + /api reverse proxy.
+
+{$DOMAIN} {
+	encode gzip zstd
+
+	# API — proxied to the FastAPI service on the internal Docker network.
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	# Everything else — the static dashboard.
+	root * /srv/frontend
+	file_server
+}

@@ -1,0 +1,113 @@
+# NanitesLab — single-VPS production stack.
+#
+#   mosquitto   MQTT broker that receives uplinks from the UG65 gateways
+#   ingest      decodes Milesight payloads and writes them to TimescaleDB
+#   timescaledb time-series storage
+#   api         FastAPI JSON API for the dashboard
+#   grafana     internal admin/debug view (bound to loopback only)
+#   caddy       reverse proxy with automatic HTTPS (serves frontend + /api)
+#
+# Secrets come from a `.env` file (see `.env.example`).
+#
+# Version policy (this stack is meant to run for years):
+#   - Services pinned to a *specific* version below would silently break on a
+#     future major upgrade, so they are pinned explicitly.
+#   - `:2`, `:3.12-slim`, etc. are intentionally left floating within one
+#     compatible major/minor line so they keep receiving non-breaking security
+#     fixes. Bump everything deliberately once a year (see README).
+
+name: naniteslab
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "1883:1883"            # gateways publish here (public internet)
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+
+  timescaledb:
+    image: timescale/timescaledb:2.17.2-pg16  # pinned — a future 3.x would be breaking
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-naniteslab}
+      POSTGRES_USER: ${POSTGRES_USER:-naniteslab}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+      # Schema + retention scripts run once, in filename order, on first boot.
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-naniteslab} -d ${POSTGRES_DB:-naniteslab}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ingest:
+    build: ./ingest
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_started
+      timescaledb:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-naniteslab}:${POSTGRES_PASSWORD}@timescaledb:5432/${POSTGRES_DB:-naniteslab}
+      MQTT_HOST: mosquitto
+      MQTT_PORT: ${MQTT_PORT:-1883}
+      MQTT_TOPIC: ${MQTT_TOPIC:-#}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+  api:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-naniteslab}:${POSTGRES_PASSWORD}@timescaledb:5432/${POSTGRES_DB:-naniteslab}
+    expose:
+      - "8000"
+
+  grafana:
+    image: grafana/grafana:11.3.1  # pinned — a future major would be breaking
+    restart: unless-stopped
+    # Internal debugging only. Bound to loopback: reach it via an SSH tunnel
+    # (ssh -L 3000:localhost:3000 user@vps) rather than a public URL.
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD in .env}
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./frontend:/srv/frontend:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  timescale-data:
+  grafana-data:
+  caddy-data:
+  caddy-config:

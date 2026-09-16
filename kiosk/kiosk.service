@@ -1,0 +1,26 @@
+[Unit]
+Description=NanitesLab dashboard kiosk (Chromium)
+# Start only once the network is up.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+# On Raspberry Pi OS Bookworm the binary is "chromium"; on older images it may
+# be "chromium-browser" — adjust the ExecStart path to match your image.
+# Replace the URL with the real dashboard domain.
+ExecStart=/usr/bin/chromium \
+  --kiosk \
+  --noerrdialogs \
+  --disable-infobars \
+  --disable-session-crashed-bubble \
+  --disable-restore-session-state \
+  --no-first-run \
+  --check-for-update-interval=604800 \
+  --app=https://dashboard.example.com/
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
