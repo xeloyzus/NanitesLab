@@ -30,10 +30,20 @@ naniteslab/
 ├── docker-compose.yml      # the whole stack
 ├── Caddyfile               # reverse proxy + automatic HTTPS
 ├── .env.example            # copy to .env and fill in
+├── requirements-dev.txt    # test dependencies
+├── run.sh                  # convenience launcher (VPS)
 ├── mosquitto/              # broker config
-├── db/                     # schema (init.sql) + retention/downsampling
-├── ingest/                 # MQTT -> decode -> TimescaleDB (Python, paho-mqtt)
-├── app/                     # FastAPI JSON API (official "bigger app" layout)
+├── app/                    # FastAPI backend (layered)
+│   ├── main.py             # app entrypoint
+│   ├── dependencies.py     # get_db dependency
+│   ├── core/               # settings (config.py)
+│   ├── db/                 # connection pool + SQL migrations/
+│   ├── internal/           # ops endpoints (health)
+│   ├── routers/            # thin HTTP layer
+│   ├── schemas/            # Pydantic response models
+│   └── services/           # business logic
+├── ingest/                 # MQTT -> decode -> TimescaleDB
+├── tests/                  # pytest suite
 ├── frontend/               # static dashboard (HTML/CSS/JS + Chart.js)
 ├── kiosk/                  # Raspberry Pi kiosk service + watchdog
 ├── hardware/               # sensor placement + gateway config
@@ -79,7 +89,7 @@ naniteslab/
 
 - ~13 devices reporting every 15 min ≈ 1,250 messages/day ≈ 200–300 MB/year.
 - Raw readings kept 90 days, then rolled into hourly averages
-  (`db/retention_policy.sql`). 20 GB of disk covers years of operation.
+  (`app/db/migrations/0002_retention.sql`). 20 GB of disk covers years of operation.
 
 ## Kiosk displays
 

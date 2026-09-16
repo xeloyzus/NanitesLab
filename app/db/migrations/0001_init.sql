@@ -1,4 +1,5 @@
--- NanitesLab schema. Runs once when the TimescaleDB volume is first created.
+-- Migration 0001: schema. Runs once when the TimescaleDB volume is first
+-- created (mounted into /docker-entrypoint-initdb.d in filename order).
 
 -- Enable the time-series extension.
 CREATE EXTENSION IF NOT EXISTS timescaledb;

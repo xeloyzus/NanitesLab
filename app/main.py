@@ -10,7 +10,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .db import pool
+from .db.database import pool
+from .internal import health
 from .routers import buildings, history
 
 
@@ -35,8 +36,4 @@ app.add_middleware(
 
 app.include_router(buildings.router)
 app.include_router(history.router)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+app.include_router(health.router)

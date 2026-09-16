@@ -29,8 +29,8 @@ VALUES ('24e124128b123456', 1, 'am103', 'Library — Reading room 1', '2nd floor
 ```
 
 The DevEUI is printed on the sensor label and shown in the gateway's device
-list. Use the building IDs from `db/init.sql` (1 = Kjølv Egelands hus,
-2 = Library, 3 = Arne Rettedals hus).
+list. Use the building IDs from `app/db/migrations/0001_init.sql`
+(1 = Kjølv Egelands hus, 2 = Library, 3 = Arne Rettedals hus).
 
 ## Uplink settings
 

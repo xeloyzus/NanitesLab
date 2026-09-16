@@ -1,4 +1,4 @@
--- Downsampling + retention.
+-- Migration 0002: downsampling + retention.
 -- Raw readings are kept for 90 days, then rolled into hourly averages that
 -- are kept indefinitely. This keeps the dashboard fast forever while
 -- preserving long-term trends (used by Grafana).

@@ -10,7 +10,7 @@ from typing import Annotated
 from fastapi import Depends
 from psycopg import AsyncConnection
 
-from .db import pool
+from .db.database import pool
 
 
 async def get_db() -> AsyncIterator[AsyncConnection]:
