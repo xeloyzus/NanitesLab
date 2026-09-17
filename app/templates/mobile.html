@@ -1,16 +1,191 @@
 {% extends "base.html" %}
 
-{% block title %}NanitesLab{% endblock %}
+{% block title %}NanitesLab — Indoor Climate Dashboard{% endblock %}
+
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Inline critical CSS for faster initial render */
+  .loading-skeleton {
+    background: linear-gradient(90deg, #1f2937 25%, #111827 50%, #1f2937 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 12px;
+    height: 1.5rem;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <header>
   <h1>NanitesLab</h1>
-  <span id="updated"></span>
+  <span id="updated" title="Last updated"></span>
 </header>
-<main id="mobile"></main>
+<main id="mobile">
+  <!-- Loading state shown initially -->
+  <div id="loading" class="loading-state">
+    <div class="building">
+      <div class="skeleton" style="width: 60%; height: 2rem; margin-bottom: 1rem;"></div>
+      <div class="skeleton" style="width: 100%; height: 4rem;"></div>
+    </div>
+    <div class="building">
+      <div class="skeleton" style="width: 60%; height: 2rem; margin-bottom: 1rem;"></div>
+      <div class="skeleton" style="width: 100%; height: 4rem;"></div>
+    </div>
+  </div>
+</main>
 {% endblock %}
 
 {% block scripts %}
-<script>initMobile();</script>
+<script>
+// Enhanced mobile dashboard with loading states and error handling
+const MOBILE_REFRESH_MS = 60000;
+
+// Display metadata for each metric
+const METRICS = {
+  temperature: { label: 'Temperature', unit: '°C', color: '#f87171', decimals: 1 },
+  humidity: { label: 'Humidity', unit: '%', color: '#60a5fa', decimals: 0 },
+  co2: { label: 'CO₂', unit: 'ppm', color: '#a78bfa', decimals: 0 },
+  battery: { label: 'Battery', unit: '%', color: '#34d399', decimals: 0 },
+  current_1: { label: 'Current L1', unit: 'A', color: '#fbbf24', decimals: 1 },
+  current_2: { label: 'Current L2', unit: 'A', color: '#fb923c', decimals: 1 },
+  current_3: { label: 'Current L3', unit: 'A', color: '#22d3ee', decimals: 1 },
+};
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
+
+function formatValue(metric, value) {
+  const meta = METRICS[metric] || { unit: '', decimals: 1 };
+  const decimals = meta.decimals ?? 1;
+  const number = Number(value).toFixed(decimals);
+  return meta.unit ? `${number} ${meta.unit}` : number;
+}
+
+function getQualityBadge(co2) {
+  if (co2 == null) return { text: '—', color: '#6b7280' };
+  if (co2 <= 800) return { text: 'Good', color: '#10b981' };
+  if (co2 <= 1200) return { text: 'Fair', color: '#f59e0b' };
+  return { text: 'Poor', color: '#ef4444' };
+}
+
+async function fetchWithTimeout(url, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { 
+      signal: controller.signal,
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function loadDashboard() {
+  const container = document.getElementById('mobile');
+  const updatedEl = document.getElementById('updated');
+  const loadingEl = document.getElementById('loading');
+  
+  try {
+    // Show loading skeleton
+    if (loadingEl) loadingEl.style.display = 'block';
+    
+    const buildings = await fetchWithTimeout('/api/buildings');
+    
+    if (loadingEl) loadingEl.style.display = 'none';
+    container.innerHTML = '';
+    
+    for (const building of buildings) {
+      const card = document.createElement('section');
+      card.className = 'building';
+      
+      let sensorsHtml = '';
+      try {
+        const data = await fetchWithTimeout(`/api/buildings/${building.id}/current`);
+        
+        const co2Readings = [];
+        for (const sensor of data.sensors) {
+          if (sensor.readings?.co2 != null) {
+            co2Readings.push(sensor.readings.co2);
+          }
+        }
+        const avgCo2 = co2Readings.length > 0 
+          ? co2Readings.reduce((a, b) => a + b, 0) / co2Readings.length 
+          : null;
+        const quality = getQualityBadge(avgCo2);
+        
+        sensorsHtml = `<ul class="sensor-list">`;
+        for (const sensor of data.sensors) {
+          const readings = Object.entries(sensor.readings)
+            .filter(([metric]) => METRICS[metric])
+            .map(([metric, value]) => 
+              `<span class="metric">
+                <em>${METRICS[metric].label}</em>
+                <strong style="color: ${METRICS[metric].color}">${formatValue(metric, value)}</strong>
+              </span>`
+            ).join('');
+          
+          const badgeClass = sensor.type === 'am103' ? 'sensor-am103' : 'sensor-ct305';
+          sensorsHtml += `
+            <li class="sensor ${badgeClass}">
+              <div class="sensor-head">
+                <span>${escapeHtml(sensor.label)}</span>
+                <span class="badge">${sensor.type.toUpperCase()}</span>
+              </div>
+              <div class="metrics">${readings}</div>
+            </li>
+          `;
+        }
+        sensorsHtml += '</ul>';
+        
+      } catch (err) {
+        sensorsHtml = `<p class="error">Unable to load sensor data</p>`;
+      }
+      
+      card.innerHTML = `
+        <h2>
+          ${escapeHtml(building.name)}
+          ${quality.text !== '—' ? `<span class="badge" style="margin-left: auto; background: ${quality.color}20; color: ${quality.color}; border-color: ${quality.color}40">${quality.text}</span>` : ''}
+        </h2>
+        ${sensorsHtml}
+      `;
+      
+      container.appendChild(card);
+    }
+    
+    updatedEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    updatedEl.title = new Date().toISOString();
+    
+  } catch (err) {
+    console.error('Dashboard load failed:', err);
+    if (loadingEl) loadingEl.style.display = 'none';
+    container.innerHTML = `
+      <div class="error">
+        <p>⚠️ Unable to load dashboard</p>
+        <p style="font-size: 0.875rem; opacity: 0.8; margin-top: 0.5rem">${escapeHtml(err.message)}</p>
+        <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--accent-primary); color: white; border: none; border-radius: 8px; cursor: pointer;">Retry</button>
+      </div>
+    `;
+  }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+  setInterval(loadDashboard, MOBILE_REFRESH_MS);
+});
+</script>
 {% endblock %}
 

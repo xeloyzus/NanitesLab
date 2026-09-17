@@ -2,15 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0e1a">
+  <meta name="description" content="Real-time indoor climate monitoring dashboard for NanitesLab project - tracking CO₂, temperature, humidity, and electricity usage across campus buildings.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>{% block title %}NanitesLab{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/images/qr-code.svg">
   <link rel="stylesheet" href="/static/css/styles.css">
   {% block head %}{% endblock %}
 </head>
 <body>
   {% block content %}{% endblock %}
-  <script src="/static/js/api-client.js"></script>
-  <script src="/static/js/charts.js"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
