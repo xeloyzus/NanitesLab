@@ -1,0 +1,22 @@
+INFO:     127.0.0.1:57001 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57001 - "GET /api/buildings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57001 - "GET /mobile HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55573 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55573 - "GET /static/css/styles.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55666 - "GET /static/css/kiosk.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63561 - "GET /static/images/qr-code.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61009 - "GET /static/js/kiosk-core.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55666 - "GET /static/js/kiosk.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55984 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55984 - "GET /static/css/styles.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63422 - "GET /static/css/kiosk.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65078 - "GET /static/images/qr-code.svg HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:56879 - "GET /static/js/kiosk-core.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:55984 - "GET /static/js/kiosk.js HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:59249 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59249 - "GET /static/css/styles.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60641 - "GET /static/css/kiosk.css HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54051 - "GET /static/js/kiosk-core.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63072 - "GET /static/images/qr-code.svg HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54051 - "GET /static/js/kiosk.js HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54051 - "GET /static/images/qr-code.svg HTTP/1.1" 200 OK

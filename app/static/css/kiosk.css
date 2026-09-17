@@ -26,6 +26,9 @@ body.kiosk {
   --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
   --text-muted: #9ca3af;
+  /* Legacy aliases used by the rest of this stylesheet */
+  --text: #f9fafb;
+  --muted: #9ca3af;
   
   /* CO₂ gradient stops */
   --co2-good: #10b981;
