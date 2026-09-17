@@ -1,1 +1,18 @@
-Nothing needs to be added to .gitignore since the changes only include source files (.css, .html) and no build artifacts, dependencies, or temporary files.
+# Secrets — never commit
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local data / logs
+*.log
