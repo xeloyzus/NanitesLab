@@ -10,9 +10,9 @@ const require = createRequire(import.meta.url);
 const K = require("../app/static/js/kiosk-core.js");
 
 test("co2Color thresholds", () => {
-  assert.equal(K.co2Color(600), "#69db7c");
-  assert.equal(K.co2Color(900), "#ffd43b");
-  assert.equal(K.co2Color(1500), "#ff6b6b");
+  assert.equal(K.co2Color(600), "#00e676");
+  assert.equal(K.co2Color(900), "#ffd54f");
+  assert.equal(K.co2Color(1500), "#ff3b30");
 });
 
 test("co2Status buckets", () => {

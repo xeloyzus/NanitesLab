@@ -69,7 +69,7 @@ function renderHero() {
   if (!kioskState || !kioskState.worstBuilding) { el.innerHTML = ""; return; }
   const wb = kioskState.worstBuilding;
   const st = K.co2Status(wb.summary.co2 || 0);
-  const dotColor = st.cls === "good" ? "#69db7c" : st.cls === "fair" ? "#ffd43b" : "#ff6b6b";
+  const dotColor = K.co2Color(wb.summary.co2 || 0);
   const deltas = kioskState.buildings.map((b) => {
     const d = b.summary.co2Delta;
     if (d == null) return "";
@@ -78,11 +78,15 @@ function renderHero() {
   }).join("");
   el.innerHTML =
     `<div class="hero-main">` +
-    `<span class="hero-dot" style="background:${dotColor}"></span>` +
+    `<span class="hero-dot" style="background:${dotColor};box-shadow:0 0 18px ${dotColor}"></span>` +
+    `<div class="hero-status-block">` +
     `<span class="hero-status ${st.cls}">${st.label}</span>` +
-    `<span class="hero-text">worst air: <strong>${escapeHtml(wb.building.name)}</strong> <strong>${Math.round(wb.summary.co2 || 0)} ppm</strong></span>` +
+    `<span class="hero-sub">worst air · ${escapeHtml(wb.building.name)}</span>` +
+    `</div>` +
+    `<div class="hero-number"><span class="num" data-value="${Math.round(wb.summary.co2 || 0)}">—</span><span class="hero-unit">ppm</span></div>` +
     `</div>` +
     `<div class="hero-deltas">${deltas}</div>`;
+  animateNumbers(el);
 }
 
 function renderOverview() {
@@ -150,10 +154,10 @@ function lineChartOptions() {
     scales: {
       x: {
         type: "linear",
-        ticks: { color: "#868e96", font: { size: 13 }, callback: (v) => new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
-        grid: { color: "#2b3442" },
+        ticks: { color: "#9aa5b1", font: { size: 13 }, callback: (v) => new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) },
+        grid: { color: "rgba(255,255,255,0.06)" },
       },
-      y: { ticks: { color: "#868e96", font: { size: 13 } }, grid: { color: "#2b3442" } },
+      y: { ticks: { color: "#9aa5b1", font: { size: 13 } }, grid: { color: "rgba(255,255,255,0.06)" } },
     },
   };
 }
@@ -184,8 +188,8 @@ async function renderTrends() {
   container.innerHTML = "";
   const panels = [
     { title: "CO₂ (ppm)", key: "co2Series", full: true, colorFn: (s) => K.co2Color(s.co2 || 0) },
-    { title: "Temperature (°C)", key: "tempSeries", colorFn: () => "#ff6b6b" },
-    { title: "Humidity (%)", key: "humSeries", colorFn: () => "#4dabf7" },
+    { title: "Temperature (°C)", key: "tempSeries", colorFn: () => "#4cc9f0" },
+    { title: "Humidity (%)", key: "humSeries", colorFn: () => "#a78bfa" },
   ];
   for (const panel of panels) {
     const block = document.createElement("div");
@@ -263,7 +267,7 @@ function renderRooms() {
 function applyAmbient() {
   const color = K.co2Color(kioskState.worst);
   document.documentElement.style.setProperty("--status-color", color);
-  document.documentElement.style.setProperty("--status-bg", `linear-gradient(180deg, ${K.hexToRgba(color, 0.14)}, var(--bg) 55%)`);
+  document.documentElement.style.setProperty("--status-bg", `radial-gradient(ellipse 90% 55% at 50% -12%, ${K.hexToRgba(color, 0.16)}, transparent 62%)`);
 }
 
 function renderHeaderStatus() {
@@ -320,12 +324,7 @@ function rotateView() {
   }
 }
 
-/* ---- Day/night dimming + burn-in shift ---- */
-function applyDayNight() {
-  const hour = new Date().getHours();
-  document.body.classList.toggle("night", hour < 7 || hour >= 22);
-}
-
+/* ---- Burn-in shift ---- */
 function startBurnInShift() {
   const offsets = [[0, 0], [3, 2], [-3, 2], [2, -3], [0, 0]];
   let i = 0;
@@ -371,8 +370,6 @@ async function initKiosk() {
   document.body.classList.add("kiosk");
   startClock();
   wireTrendsRange();
-  applyDayNight();
-  setInterval(applyDayNight, 60 * 1000);
   startBurnInShift();
   await kioskRefresh();
   rotateView();

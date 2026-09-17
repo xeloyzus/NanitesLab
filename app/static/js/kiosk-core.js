@@ -21,9 +21,9 @@
   }
 
   function co2Color(ppm) {
-    if (ppm <= 800) return "#69db7c";
-    if (ppm <= 1200) return "#ffd43b";
-    return "#ff6b6b";
+    if (ppm <= 800) return "#00e676";
+    if (ppm <= 1200) return "#ffd54f";
+    return "#ff3b30";
   }
 
   function co2Status(ppm) {
@@ -34,7 +34,7 @@
 
   // Continuous green→amber→red gradient for the heatmap (400–2000 ppm).
   function co2Gradient(ppm) {
-    const stops = [[400, [105, 219, 124]], [800, [255, 212, 59]], [1200, [255, 107, 107]], [2000, [255, 107, 107]]];
+    const stops = [[400, [0, 230, 118]], [800, [255, 213, 79]], [1200, [255, 59, 48]], [2000, [255, 59, 48]]];
     const v = clamp(ppm, 400, 2000);
     for (let i = 0; i < stops.length - 1; i++) {
       const a = stops[i], b = stops[i + 1];
@@ -44,7 +44,7 @@
         return "#" + ((1 << 24) + (c[0] << 16) + (c[1] << 8) + c[2]).toString(16).slice(1);
       }
     }
-    return "#ff6b6b";
+    return "#ff3b30";
   }
 
   function hexToRgba(hex, alpha) {
@@ -144,7 +144,7 @@
     const frac = clamp((v - 400) / (2000 - 400), 0, 1);
     const semicirc = Math.PI * 80;
     const filled = frac * semicirc;
-    const zones = [[0, 0.25, "#69db7c"], [0.25, 0.5, "#ffd43b"], [0.5, 1, "#ff6b6b"]];
+    const zones = [[0, 0.25, "#00e676"], [0.25, 0.5, "#ffd54f"], [0.5, 1, "#ff3b30"]];
     const track = zones.map((z) =>
       `<path d="${arcSegment(z[0], z[1])}" fill="none" stroke="${z[2]}" stroke-width="6" opacity="0.45"/>`
     ).join("");
