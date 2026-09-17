@@ -71,6 +71,9 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-naniteslab}:${POSTGRES_PASSWORD}@timescaledb:5432/${POSTGRES_DB:-naniteslab}
+      DEMO_MODE: ${DEMO_MODE:-0}
+      KIOSK_REFRESH_SECONDS: ${KIOSK_REFRESH_SECONDS:-60}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     expose:
       - "8000"
 

@@ -1,0 +1,697 @@
+/* NanitesLab kiosk presentation: passive, large-format student overview. */
+
+:root {
+  --kiosk-bg: #f7f9fb;
+  --kiosk-panel: #ffffff;
+  --kiosk-panel-soft: #eef4f6;
+  --kiosk-ink: #14212b;
+  --kiosk-muted: #536574;
+  --kiosk-line: #cbd8df;
+  --kiosk-teal: #0f6f7a;
+  --kiosk-blue: #2457a7;
+  --kiosk-green: #16866f;
+  --kiosk-amber: #9f6b12;
+  --kiosk-red: #b84432;
+  --kiosk-shadow: 0 18px 44px rgba(32, 48, 61, 0.12);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.kiosk-pulse-page {
+  background: var(--kiosk-bg);
+  background-image:
+    linear-gradient(135deg, rgba(15, 111, 122, 0.07), transparent 34%),
+    linear-gradient(315deg, rgba(36, 87, 167, 0.07), transparent 30%);
+  color: var(--kiosk-ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.kiosk-pulse {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  grid-template-rows: clamp(4.8rem, 8vh, 7rem) 0.5rem minmax(0, 1fr) clamp(4rem, 6vh, 5.6rem);
+  gap: clamp(1rem, 1.7vh, 1.6rem);
+  padding: clamp(1.4rem, 2vw, 2.4rem);
+}
+
+.kiosk-topbar,
+.kiosk-footer-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  gap: 2rem;
+}
+
+.kiosk-topbar {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.kiosk-kicker,
+.scene-label {
+  display: block;
+  color: var(--kiosk-teal);
+  font-size: clamp(0.95rem, 1.15vw, 1.35rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.kiosk-topbar strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--kiosk-ink);
+  font-size: clamp(1.8rem, 2.8vw, 3.2rem);
+  line-height: 0.95;
+}
+
+.kiosk-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.kiosk-status span,
+.kiosk-badge {
+  border: 1px solid var(--kiosk-line);
+  border-radius: 8px;
+  background: var(--kiosk-panel);
+  color: var(--kiosk-muted);
+  font-size: clamp(1.05rem, 1.4vw, 1.7rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.kiosk-status span {
+  padding: 0.7rem 0.9rem;
+}
+
+.kiosk-status .delayed {
+  color: var(--kiosk-amber);
+}
+
+.kiosk-status .stale {
+  color: var(--kiosk-red);
+}
+
+.kiosk-status .live {
+  color: var(--kiosk-teal);
+}
+
+.kiosk-status .demo {
+  color: var(--kiosk-amber);
+}
+
+.kiosk-progress {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(15, 111, 122, 0.14);
+}
+
+.kiosk-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--kiosk-teal), var(--kiosk-blue));
+  transition: width 250ms linear;
+}
+
+.kiosk-scene {
+  grid-row: 3;
+  grid-column: 1;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  gap: clamp(1.2rem, 2.2vw, 2.5rem);
+  align-items: center;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.6rem);
+  transition: opacity 450ms ease, transform 450ms ease;
+}
+
+.kiosk-scene.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.kiosk-scene[data-scene="campus-now"],
+.kiosk-scene[data-scene="local-focus"],
+.kiosk-scene[data-scene="qr"] {
+  grid-template-columns: minmax(0, 0.9fr) minmax(34rem, 1.1fr);
+}
+
+.kiosk-scene[data-scene="air-today"],
+.kiosk-scene[data-scene="campus-map"],
+.kiosk-scene[data-scene="buildings"],
+.kiosk-scene[data-scene="insight"],
+.kiosk-scene[data-scene="action"] {
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.scene-copy {
+  min-width: 0;
+}
+
+.scene-copy.wide {
+  align-self: center;
+  max-width: min(92rem, 100%);
+}
+
+.scene-copy h1,
+.scene-copy h2,
+.scene-head h2 {
+  margin: 0.45rem 0 0;
+  max-width: 12ch;
+  color: var(--kiosk-ink);
+  font-size: clamp(5.2rem, 9.2vw, 10rem);
+  line-height: 0.9;
+  letter-spacing: 0;
+}
+
+.scene-copy h2,
+.scene-head h2 {
+  max-width: 14ch;
+  font-size: clamp(4.2rem, 7vw, 7.8rem);
+}
+
+.scene-copy p,
+.scene-head p {
+  max-width: 28ch;
+  margin: clamp(1rem, 2vh, 1.8rem) 0 0;
+  color: var(--kiosk-muted);
+  font-size: clamp(2rem, 3vw, 3.35rem);
+  line-height: 1.12;
+  font-weight: 550;
+}
+
+.scene-head {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(24rem, 0.72fr);
+  gap: 2rem;
+  align-items: end;
+}
+
+.scene-head p {
+  justify-self: end;
+  max-width: 32ch;
+  margin: 0 0 0.55rem;
+  font-size: clamp(1.65rem, 2.15vw, 2.55rem);
+}
+
+.kiosk-metric-wall {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.9rem, 1.6vh, 1.35rem);
+}
+
+.kiosk-metric-wall article,
+.kiosk-building-card,
+.kiosk-chart,
+.kiosk-focus-card,
+.kiosk-map-building,
+.kiosk-qr-panel,
+.scene-copy.wide {
+  border: 1px solid var(--kiosk-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--kiosk-shadow);
+}
+
+.kiosk-local-card {
+  min-height: 0;
+}
+
+.kiosk-focus-card {
+  height: 100%;
+  display: grid;
+  align-content: center;
+  gap: clamp(1rem, 2vh, 1.8rem);
+  padding: clamp(2rem, 4vw, 4.2rem);
+}
+
+.kiosk-focus-card h3 {
+  margin: 0;
+  color: var(--kiosk-ink);
+  font-size: clamp(3.2rem, 5.8vw, 6.8rem);
+  line-height: 0.95;
+}
+
+.kiosk-focus-values {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.kiosk-focus-values strong {
+  color: var(--kiosk-ink);
+  font-size: clamp(4.6rem, 7vw, 8rem);
+  line-height: 1;
+}
+
+.kiosk-focus-values span,
+.kiosk-focus-card p {
+  margin: 0;
+  color: var(--kiosk-muted);
+  font-size: clamp(1.7rem, 2.3vw, 2.8rem);
+  line-height: 1.15;
+  font-weight: 750;
+}
+
+.kiosk-metric-wall article {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: center;
+  row-gap: 0.7rem;
+  padding: clamp(1.2rem, 2vw, 2.3rem);
+}
+
+.kiosk-metric-wall span,
+.kiosk-building-card span {
+  color: var(--kiosk-muted);
+  font-size: clamp(1rem, 1.45vw, 1.55rem);
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.kiosk-metric-wall strong {
+  display: block;
+  color: var(--kiosk-ink);
+  font-size: clamp(3.9rem, 6.4vw, 6.8rem);
+  line-height: 1.04;
+  white-space: nowrap;
+}
+
+.kiosk-metric-wall em,
+.kiosk-building-card em {
+  color: var(--kiosk-muted);
+  font-size: clamp(1.15rem, 1.55vw, 1.85rem);
+  font-style: normal;
+  line-height: 1.2;
+}
+
+.kiosk-chart {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(0.6rem, 1vw, 1rem);
+}
+
+.kiosk-chart svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.kiosk-chart .axis text {
+  fill: var(--kiosk-muted);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.kiosk-chart .axis path,
+.kiosk-chart .axis line,
+.kiosk-chart .grid-lines line {
+  stroke: var(--kiosk-line);
+}
+
+.kiosk-chart .series-line,
+.kiosk-chart .current-marker {
+  filter: drop-shadow(0 2px 2px rgba(20, 33, 43, 0.18));
+}
+
+.annotation-line {
+  stroke: var(--kiosk-blue);
+  stroke-width: 2;
+  stroke-dasharray: 8 8;
+  opacity: 0.72;
+}
+
+.annotation-dot {
+  fill: var(--kiosk-blue);
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.annotation-label {
+  fill: var(--kiosk-ink);
+  paint-order: stroke;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 4px;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.kiosk-campus-map {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 1.6vw, 1.8rem);
+}
+
+.kiosk-map-building {
+  position: relative;
+  min-width: 0;
+  min-height: 24rem;
+  display: grid;
+  align-content: end;
+  gap: 0.45rem;
+  overflow: hidden;
+  padding: clamp(1rem, 1.8vw, 2rem);
+}
+
+.kiosk-map-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  opacity: 0.18;
+}
+
+.kiosk-map-building.good .kiosk-map-bar {
+  background: var(--kiosk-green);
+}
+
+.kiosk-map-building.watch .kiosk-map-bar {
+  background: var(--kiosk-amber);
+}
+
+.kiosk-map-building.attention .kiosk-map-bar {
+  background: var(--kiosk-red);
+}
+
+.kiosk-map-building span,
+.kiosk-map-building h3,
+.kiosk-map-building strong,
+.kiosk-map-building em {
+  position: relative;
+  z-index: 1;
+}
+
+.kiosk-map-building span {
+  color: var(--kiosk-teal);
+  font-size: clamp(1rem, 1.4vw, 1.7rem);
+  font-weight: 900;
+}
+
+.kiosk-map-building h3 {
+  margin: 0;
+  color: var(--kiosk-ink);
+  font-size: clamp(2rem, 2.7vw, 3.6rem);
+  line-height: 1;
+}
+
+.kiosk-map-building strong {
+  color: var(--kiosk-ink);
+  font-size: clamp(2.3rem, 3.3vw, 4rem);
+  line-height: 1;
+}
+
+.kiosk-map-building em {
+  color: var(--kiosk-muted);
+  font-size: clamp(1.1rem, 1.5vw, 1.8rem);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.kiosk-building-grid {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.9rem, 1.6vw, 1.6rem);
+}
+
+.kiosk-building-card {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  gap: clamp(0.8rem, 1.4vh, 1.25rem);
+  padding: clamp(1rem, 1.6vw, 1.8rem);
+}
+
+.kiosk-building-card h3 {
+  margin: 0 0 0.7rem;
+  color: var(--kiosk-ink);
+  font-size: clamp(1.85rem, 2.35vw, 3rem);
+  line-height: 1;
+}
+
+.kiosk-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.45rem 0.65rem;
+  font-size: clamp(0.92rem, 1.15vw, 1.35rem);
+}
+
+.kiosk-badge.current {
+  color: var(--kiosk-green);
+}
+
+.kiosk-badge.delayed {
+  color: var(--kiosk-amber);
+}
+
+.kiosk-badge.stale {
+  color: var(--kiosk-red);
+}
+
+.kiosk-building-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.kiosk-building-values span {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.kiosk-building-values strong {
+  display: block;
+  color: var(--kiosk-ink);
+  font-size: clamp(1.7rem, 2.15vw, 2.7rem);
+  line-height: 1;
+}
+
+.kiosk-building-card p {
+  margin: 0;
+  color: var(--kiosk-muted);
+  font-size: clamp(1.2rem, 1.55vw, 1.85rem);
+  line-height: 1.18;
+  font-weight: 650;
+}
+
+.scene-copy.wide {
+  display: grid;
+  align-content: center;
+  min-height: min(100%, 34rem);
+  padding: clamp(2rem, 4vw, 5rem);
+}
+
+.scene-copy.wide h2 {
+  max-width: 16ch;
+}
+
+.scene-copy.wide p {
+  max-width: 35ch;
+}
+
+.kiosk-quality-list,
+.kiosk-action-audiences {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: clamp(1.2rem, 2vh, 2rem);
+}
+
+.kiosk-quality-list span,
+.kiosk-action-audiences article {
+  border: 1px solid var(--kiosk-line);
+  border-radius: 8px;
+  background: var(--kiosk-panel-soft);
+  color: var(--kiosk-muted);
+  font-size: clamp(1.35rem, 1.8vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.12;
+  padding: clamp(0.9rem, 1.5vw, 1.4rem);
+}
+
+.kiosk-quality-list strong {
+  display: block;
+  color: var(--kiosk-ink);
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  line-height: 1;
+}
+
+.kiosk-action-audiences article span {
+  display: block;
+  color: var(--kiosk-teal);
+  font-size: clamp(1rem, 1.25vw, 1.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.kiosk-action-audiences article p {
+  margin: 0.6rem 0 0;
+  max-width: none;
+  font-size: clamp(1.25rem, 1.7vw, 2rem);
+  line-height: 1.2;
+}
+
+.kiosk-verify {
+  margin-top: clamp(1.2rem, 2vh, 2rem) !important;
+  color: var(--kiosk-teal) !important;
+  font-weight: 900;
+}
+
+.kiosk-qr-panel {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: clamp(0.8rem, 1.4vh, 1.2rem);
+  padding: clamp(1.4rem, 3vw, 3rem);
+  text-align: center;
+}
+
+.kiosk-qr-panel img {
+  width: min(48vh, 34vw);
+  max-width: 32rem;
+  border: 1px solid var(--kiosk-line);
+  border-radius: 8px;
+  background: #fff;
+  padding: clamp(0.6rem, 1vw, 1rem);
+}
+
+.kiosk-qr-panel strong {
+  color: var(--kiosk-ink);
+  font-size: clamp(2.4rem, 4vw, 4.6rem);
+  line-height: 1;
+}
+
+.kiosk-qr-panel span {
+  color: var(--kiosk-muted);
+  font-size: clamp(1.4rem, 2vw, 2.4rem);
+  font-weight: 800;
+}
+
+.kiosk-footer-strip {
+  border-top: 1px solid var(--kiosk-line);
+  padding-top: clamp(0.55rem, 1vh, 0.9rem);
+  color: var(--kiosk-muted);
+  font-size: clamp(1rem, 1.25vw, 1.45rem);
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.kiosk-footer-strip span {
+  min-width: 0;
+}
+
+.kiosk-footer-strip a {
+  flex: 0 0 auto;
+  color: var(--kiosk-teal);
+  text-decoration: none;
+}
+
+.kiosk-qr-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.kiosk-qr-note img {
+  width: clamp(2.2rem, 3vw, 3.4rem);
+  height: clamp(2.2rem, 3vw, 3.4rem);
+  border: 1px solid var(--kiosk-line);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.chart-tooltip,
+.hit-area {
+  display: none;
+}
+
+@media (max-width: 1200px) {
+  .kiosk-pulse {
+    grid-template-rows: auto 0.45rem minmax(0, 1fr) auto;
+  }
+
+  .kiosk-scene[data-scene="campus-now"],
+  .kiosk-scene[data-scene="local-focus"],
+  .kiosk-scene[data-scene="qr"],
+  .scene-head,
+  .kiosk-building-grid,
+  .kiosk-campus-map {
+    grid-template-columns: 1fr;
+  }
+
+  .scene-head p {
+    justify-self: start;
+  }
+
+  .scene-copy h1,
+  .scene-copy h2,
+  .scene-head h2 {
+    font-size: clamp(3.2rem, 10vw, 6rem);
+  }
+
+  .scene-copy p,
+  .scene-head p {
+    font-size: clamp(1.4rem, 4vw, 2.3rem);
+  }
+
+  .kiosk-building-card {
+    min-height: 0;
+  }
+}
+
+.kiosk-pulse[data-density="glance"] .scene-copy p,
+.kiosk-pulse[data-density="glance"] .scene-head p {
+  max-width: 24ch;
+}
+
+.kiosk-pulse[data-density="compact"] .scene-copy h1,
+.kiosk-pulse[data-density="compact"] .scene-copy h2,
+.kiosk-pulse[data-density="compact"] .scene-head h2 {
+  font-size: clamp(3.8rem, 6.2vw, 7rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kiosk-scene,
+  .kiosk-progress span {
+    transition: none;
+  }
+}

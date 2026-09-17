@@ -58,8 +58,12 @@ naniteslab/
 
    ```bash
    cp .env.example .env
-   # edit .env: POSTGRES_PASSWORD, GRAFANA_ADMIN_PASSWORD, DOMAIN
+   # edit .env: POSTGRES_PASSWORD, DATABASE_URL, GRAFANA_ADMIN_PASSWORD, DOMAIN
    ```
+
+   Use `DEMO_MODE=1` only for local UI previews. Production kiosks should run
+   with `DEMO_MODE=0`, which makes FastAPI read from TimescaleDB populated by
+   the MQTT ingest service.
 
 2. **Point DNS** at the VPS (`DOMAIN`), then start the stack:
 
@@ -86,6 +90,9 @@ naniteslab/
 | `GET /api/buildings`              | list buildings                                |
 | `GET /api/buildings/{id}/current` | latest value per metric for every sensor      |
 | `GET /api/buildings/{id}/history` | downsampled history (`?range=1h\|24h\|7d\|30d`) |
+| `GET /api/campus/summary`         | kiosk/overview aggregate contract             |
+| `GET /api/methodology`            | transparent thresholds and recommendation rules |
+| `GET /api/system/status`          | demo/live mode and kiosk refresh configuration |
 
 ## Storage
 
@@ -149,10 +156,20 @@ Do these things, on a schedule, and it will keep running:
    breaks the QR code, the kiosk URL, and any bookmarked link.
 
 5. **Uptime monitoring** — point a free monitor (e.g. UptimeRobot) at
-   `https://<DOMAIN>/api/buildings` so a failure is noticed within a day rather
-   than when someone walks past a blank kiosk screen.
+   `https://<DOMAIN>/health` and `https://<DOMAIN>/api/system/status`, and add
+   a second check for `https://<DOMAIN>/api/buildings` so a failure is noticed
+   within a day rather than when someone walks past a blank kiosk screen.
 
-6. **Document the handover** — the people running this in year 3 will not be
+6. **Live sensor cutover checklist**
+
+   - `DEMO_MODE=0`
+   - `DATABASE_URL` points at the TimescaleDB service.
+   - `docker compose ps` shows `mosquitto`, `ingest`, `timescaledb`, and `api` running.
+   - `/api/system/status` returns `"mode": "live"` and `"data_source": "timescaledb"`.
+   - `/api/buildings/{id}/current` has recent `updated` timestamps after a gateway uplink.
+   - Kiosk header says `Live sensors`, not `Demo data`.
+
+7. **Document the handover** — the people running this in year 3 will not be
    the people who set it up. Keep `README.md` + `kiosk/setup.md` current, and
    record where the VPS, domain and backups live.
 

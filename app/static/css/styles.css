@@ -404,3 +404,450 @@ header h1 {
     box-shadow: none;
   }
 }
+
+/* Campus Pulse redesign */
+.pulse-page {
+  --pulse-bg: #f6f4ef;
+  --pulse-surface: #ffffff;
+  --pulse-surface-soft: #eeebe2;
+  --pulse-text: #1f2933;
+  --pulse-muted: #66717d;
+  --pulse-line: #d8d2c4;
+  --pulse-accent: #276c77;
+  --pulse-green: #2a9d8f;
+  --pulse-amber: #b7791f;
+  --pulse-red: #c2412f;
+  --pulse-shadow: 0 18px 48px rgba(35, 42, 46, 0.08);
+  background: var(--pulse-bg);
+  background-image: none;
+  color: var(--pulse-text);
+}
+
+.pulse-page a {
+  color: inherit;
+}
+
+.pulse-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+  background: rgba(246, 244, 239, 0.92);
+  border-bottom: 1px solid var(--pulse-line);
+  box-shadow: none;
+  backdrop-filter: blur(16px);
+}
+
+.pulse-brand {
+  display: grid;
+  gap: 0.1rem;
+  text-decoration: none;
+}
+
+.pulse-brand span,
+.eyebrow {
+  color: var(--pulse-accent);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.pulse-brand strong {
+  font-size: 1rem;
+}
+
+.pulse-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.pulse-nav a,
+.pulse-link,
+.text-button {
+  border: 1px solid var(--pulse-line);
+  border-radius: 8px;
+  padding: 0.58rem 0.78rem;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--pulse-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pulse-nav a[aria-current="page"],
+.pulse-link:hover,
+.text-button:hover {
+  border-color: var(--pulse-accent);
+  color: var(--pulse-accent);
+}
+
+.pulse-shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.25rem 0 4rem;
+}
+
+.pulse-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+  gap: 1.5rem;
+  align-items: center;
+  min-height: 300px;
+  padding: clamp(1.25rem, 3vw, 2.5rem) 0 1rem;
+}
+
+.pulse-hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pulse-hero h1 {
+  max-width: 760px;
+  margin: 0.35rem 0 1rem;
+  color: var(--pulse-text);
+  font-size: clamp(2.15rem, 4.1vw, 3.9rem);
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.pulse-status {
+  max-width: 680px;
+  margin: 0;
+  color: var(--pulse-muted);
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+}
+
+.pulse-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1.35rem;
+  color: var(--pulse-muted);
+}
+
+.freshness-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--pulse-line);
+  border-radius: 999px;
+  padding: 0.36rem 0.7rem;
+  background: var(--pulse-surface);
+  color: var(--pulse-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.freshness-badge::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--pulse-muted);
+}
+
+.freshness-badge.current::before {
+  background: var(--pulse-green);
+}
+
+.freshness-badge.delayed::before {
+  background: var(--pulse-amber);
+}
+
+.freshness-badge.stale::before {
+  background: var(--pulse-red);
+}
+
+.pulse-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-self: end;
+}
+
+.metric-card {
+  min-height: 138px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid var(--pulse-line);
+  border-radius: 8px;
+  padding: 1.1rem;
+  background: var(--pulse-surface);
+  box-shadow: var(--pulse-shadow);
+}
+
+.metric-card:first-child {
+  grid-column: 1 / -1;
+}
+
+.metric-card-label {
+  color: var(--pulse-muted);
+  font-weight: 800;
+}
+
+.metric-card-value {
+  color: var(--pulse-text);
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  line-height: 1;
+}
+
+.metric-card-context {
+  color: var(--pulse-muted);
+  font-size: 0.95rem;
+}
+
+.pulse-section {
+  margin-top: 1.35rem;
+  padding: clamp(1.1rem, 3vw, 1.7rem);
+  border: 1px solid var(--pulse-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.25rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.section-head.compact {
+  margin-bottom: 0.75rem;
+}
+
+.section-head h2,
+.split-section h2 {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  letter-spacing: 0;
+}
+
+.section-head p,
+.split-section p,
+.chart-summary {
+  max-width: 560px;
+  margin: 0;
+  color: var(--pulse-muted);
+}
+
+.chart-panel {
+  position: relative;
+  min-height: 340px;
+  overflow: hidden;
+  border: 1px solid var(--pulse-line);
+  border-radius: 8px;
+  background: var(--pulse-surface);
+}
+
+.chart-empty {
+  display: grid;
+  min-height: 300px;
+  place-items: center;
+  color: var(--pulse-muted);
+}
+
+.axis text {
+  fill: var(--pulse-muted);
+  font-size: 0.78rem;
+}
+
+.axis path,
+.axis line {
+  stroke: var(--pulse-line);
+}
+
+.grid-lines line {
+  stroke: var(--pulse-line);
+  stroke-dasharray: 2 6;
+}
+
+.crosshair {
+  stroke: var(--pulse-accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.chart-tooltip {
+  position: absolute;
+  z-index: 4;
+  min-width: 150px;
+  border: 1px solid var(--pulse-line);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  background: #fff;
+  box-shadow: var(--pulse-shadow);
+  pointer-events: none;
+}
+
+.chart-tooltip strong,
+.chart-tooltip span {
+  display: block;
+}
+
+.chart-tooltip span {
+  color: var(--pulse-muted);
+}
+
+.building-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.building-pulse-card,
+.insight-card,
+.recommendation-card {
+  border: 1px solid var(--pulse-line);
+  border-radius: 8px;
+  padding: 1rem;
+  background: var(--pulse-surface);
+}
+
+.building-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.building-card-head h3,
+.insight-card h3,
+.recommendation-card h3 {
+  margin: 0;
+  color: var(--pulse-text);
+  font-size: 1.05rem;
+  letter-spacing: 0;
+}
+
+.building-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 1rem 0;
+}
+
+.building-metrics span {
+  display: grid;
+  gap: 0.24rem;
+  min-width: 0;
+}
+
+.building-metrics em,
+.insight-card span,
+.recommendation-card span {
+  color: var(--pulse-muted);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.building-metrics strong {
+  font-size: 1.1rem;
+  white-space: normal;
+}
+
+.building-pulse-card p,
+.insight-card p,
+.recommendation-card p {
+  color: var(--pulse-muted);
+}
+
+.mini-recommendation {
+  border-top: 1px solid var(--pulse-line);
+  padding-top: 0.75rem;
+  color: var(--pulse-accent);
+  font-weight: 800;
+}
+
+.mini-recommendation.quiet {
+  color: var(--pulse-muted);
+  font-weight: 700;
+}
+
+.insight-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.insight-feed {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.insight-card.attention {
+  border-color: rgba(183, 121, 31, 0.45);
+}
+
+.insight-card.warning {
+  border-color: rgba(194, 65, 47, 0.45);
+}
+
+.recommendation-card ul {
+  margin: 0.75rem 0;
+  padding-left: 1.1rem;
+  color: var(--pulse-muted);
+}
+
+.split-section {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.text-button {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .pulse-header {
+    grid-template-columns: 1fr;
+  }
+
+  .pulse-hero,
+  .insight-layout,
+  .split-section {
+    grid-template-columns: 1fr;
+  }
+
+  .pulse-hero,
+  .split-section {
+    display: grid;
+  }
+
+  .building-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .pulse-shell {
+    width: min(100% - 1rem, 1180px);
+    padding-top: 1rem;
+  }
+
+  .pulse-summary-grid,
+  .building-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-card:first-child {
+    grid-column: auto;
+  }
+
+  .section-head {
+    display: grid;
+  }
+}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}NanitesLab — UiS Campus Pulse{% endblock %}
+
+{% block body_class %}pulse-page{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<header class="pulse-header">
+  <a class="pulse-brand" href="/" aria-label="NanitesLab home">
+    <span>NanitesLab</span>
+    <strong>UiS Campus Pulse</strong>
+  </a>
+  <nav class="pulse-nav" aria-label="Primary navigation">
+    <a href="/" aria-current="page">Overview</a>
+    <a href="#buildings">Buildings</a>
+    <a href="#explore">Explore</a>
+    <a href="#about">About the Lab</a>
+  </nav>
+  <a class="pulse-link" href="/kiosk">Kiosk</a>
+</header>
+
+<main id="campus-pulse" class="pulse-shell">
+  <section class="pulse-hero" aria-labelledby="pulse-title">
+    <div class="pulse-hero-copy">
+      <p class="eyebrow">Live campus sustainability lab</p>
+      <h1 id="pulse-title">How is campus doing right now?</h1>
+      <p id="campus-status" class="pulse-status">Loading the latest sensor data...</p>
+      <div class="pulse-meta">
+        <span id="data-source-badge" class="freshness-badge">Checking source</span>
+        <span id="freshness-badge" class="freshness-badge">Checking freshness</span>
+        <span id="latest-reading">Latest reading unavailable</span>
+      </div>
+    </div>
+    <div class="pulse-summary-grid" aria-label="Campus summary">
+      <article class="metric-card" id="air-card">
+        <span class="metric-card-label">Campus CO2</span>
+        <strong class="metric-card-value">--</strong>
+        <span class="metric-card-context">Waiting for data</span>
+      </article>
+      <article class="metric-card" id="temperature-card">
+        <span class="metric-card-label">Temperature</span>
+        <strong class="metric-card-value">--</strong>
+        <span class="metric-card-context">Waiting for data</span>
+      </article>
+      <article class="metric-card" id="energy-card">
+        <span class="metric-card-label">Electricity</span>
+        <strong class="metric-card-value">--</strong>
+        <span class="metric-card-context">Estimated where CT data exists</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="pulse-section" aria-labelledby="timeline-title">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Primary visualization</p>
+        <h2 id="timeline-title">CO2 over the last 24 hours</h2>
+      </div>
+      <p id="timeline-summary" class="chart-summary">The chart summary will appear after data loads.</p>
+    </div>
+    <div id="co2-chart" class="chart-panel" role="img" aria-labelledby="timeline-title timeline-summary"></div>
+  </section>
+
+  <section id="buildings" class="pulse-section" aria-labelledby="buildings-title">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Buildings</p>
+        <h2 id="buildings-title">Where is it happening?</h2>
+      </div>
+      <p>Each card shows the underlying value, data freshness, and 24-hour context.</p>
+    </div>
+    <div id="building-grid" class="building-grid" aria-live="polite"></div>
+  </section>
+
+  <section class="pulse-section insight-layout" aria-labelledby="insights-title">
+    <div>
+      <div class="section-head compact">
+        <div>
+          <p class="eyebrow">Insights</p>
+          <h2 id="insights-title">What's happening?</h2>
+        </div>
+      </div>
+      <div id="insight-feed" class="insight-feed" aria-live="polite"></div>
+    </div>
+    <div>
+      <div class="section-head compact">
+        <div>
+          <p class="eyebrow">Evidence to action</p>
+          <h2>Possible improvement</h2>
+        </div>
+      </div>
+      <div id="recommendation-feed" class="insight-feed" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="explore" class="pulse-section split-section" aria-labelledby="explore-title">
+    <div>
+      <p class="eyebrow">Explore</p>
+      <h2 id="explore-title">Inspect the data, not just the headline</h2>
+      <p>Use the building cards and CO2 timeline as the first lightweight data laboratory. The next phases can add heatmaps, relationships, CSV export, and intervention analysis on top of these same endpoints.</p>
+    </div>
+    <a class="text-button" href="/api/campus/summary">Open JSON summary</a>
+  </section>
+
+  <section id="about" class="pulse-section split-section" aria-labelledby="about-title">
+    <div>
+      <p class="eyebrow">About the lab</p>
+      <h2 id="about-title">From sensors to evidence-backed action</h2>
+      <p>Sensor data flows from LoRaWAN devices through MQTT, TimescaleDB, FastAPI, and this dashboard. Recommendations are deterministic and expose their evidence, confidence, and verification step.</p>
+    </div>
+    <a class="text-button" href="/api/methodology">Methodology</a>
+  </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/api-client.js"></script>
+<script src="/static/js/charts/timeSeries.js"></script>
+<script src="/static/js/dashboard.js"></script>
+<script>initCampusPulse();</script>
+{% endblock %}

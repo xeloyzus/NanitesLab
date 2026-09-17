@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}NanitesLab — Campus Kiosk{% endblock %}
+
+{% block body_class %}kiosk-pulse-page{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<link rel="stylesheet" href="/static/css/kiosk-pulse.css">
+{% endblock %}
+
+{% block content %}
+<main id="kiosk-pulse" class="kiosk-pulse" aria-live="polite">
+  <header class="kiosk-topbar">
+    <div>
+      <span class="kiosk-kicker">NanitesLab</span>
+      <strong>UiS Campus Pulse</strong>
+    </div>
+    <div class="kiosk-status">
+      <span id="kiosk-source">Source --</span>
+      <span id="kiosk-freshness">Checking data</span>
+      <span id="kiosk-confidence">Coverage --</span>
+      <span id="kiosk-clock">--:--</span>
+    </div>
+  </header>
+
+  <div class="kiosk-progress" aria-hidden="true"><span id="kiosk-progress-fill"></span></div>
+
+  <section class="kiosk-scene active" data-scene="campus-now" aria-labelledby="scene-campus-title">
+    <div class="scene-copy">
+      <span class="scene-label">Live campus pulse</span>
+      <h1 id="scene-campus-title">Campus now</h1>
+      <p id="scene-campus-summary">Loading current campus data...</p>
+    </div>
+    <div class="kiosk-metric-wall">
+      <article>
+        <span>Campus CO2</span>
+        <strong id="kiosk-co2">--</strong>
+        <em id="kiosk-co2-context">Waiting for data</em>
+      </article>
+      <article>
+        <span>Temperature</span>
+        <strong id="kiosk-temp">--</strong>
+        <em id="kiosk-temp-context">Waiting for data</em>
+      </article>
+      <article>
+        <span>Electricity</span>
+        <strong id="kiosk-energy">--</strong>
+        <em>Estimated from available CT sensors</em>
+      </article>
+    </div>
+  </section>
+
+  <section class="kiosk-scene" data-scene="local-focus" aria-labelledby="scene-local-title">
+    <div class="scene-copy">
+      <span class="scene-label">This display</span>
+      <h2 id="scene-local-title">Nearby building</h2>
+      <p id="kiosk-local-summary">Loading local building status...</p>
+    </div>
+    <div id="kiosk-local-card" class="kiosk-local-card"></div>
+  </section>
+
+  <section class="kiosk-scene" data-scene="air-today" aria-labelledby="scene-air-title">
+    <div class="scene-head">
+      <div>
+        <span class="scene-label">Air today</span>
+        <h2 id="scene-air-title">CO2 over 24 hours</h2>
+      </div>
+      <p id="kiosk-chart-summary">Loading chart summary...</p>
+    </div>
+    <div id="kiosk-co2-chart" class="kiosk-chart" role="img" aria-labelledby="scene-air-title kiosk-chart-summary"></div>
+  </section>
+
+  <section class="kiosk-scene" data-scene="campus-map" aria-labelledby="scene-map-title">
+    <div class="scene-head">
+      <div>
+        <span class="scene-label">Where</span>
+        <h2 id="scene-map-title">Campus signal</h2>
+      </div>
+      <p id="kiosk-map-summary">Loading building comparison...</p>
+    </div>
+    <div id="kiosk-campus-map" class="kiosk-campus-map"></div>
+  </section>
+
+  <section class="kiosk-scene" data-scene="buildings" aria-labelledby="scene-buildings-title">
+    <div class="scene-head">
+      <div>
+        <span class="scene-label">Buildings</span>
+        <h2 id="scene-buildings-title">Building snapshot</h2>
+      </div>
+      <p>Freshness and context are shown with every value.</p>
+    </div>
+    <div id="kiosk-building-grid" class="kiosk-building-grid"></div>
+  </section>
+
+  <section class="kiosk-scene" data-scene="data-quality" aria-labelledby="scene-quality-title">
+    <div class="scene-copy wide">
+      <span class="scene-label">Trust the data</span>
+      <h2 id="scene-quality-title">Data confidence</h2>
+      <p id="kiosk-quality-summary">Loading data quality...</p>
+      <div id="kiosk-quality-list" class="kiosk-quality-list"></div>
+    </div>
+  </section>
+
+  <section class="kiosk-scene" data-scene="insight" aria-labelledby="scene-insight-title">
+    <div class="scene-copy wide">
+      <span class="scene-label">What's happening?</span>
+      <h2 id="scene-insight-title">Latest measured insight</h2>
+      <p id="kiosk-insight">Loading insight...</p>
+    </div>
+  </section>
+
+  <section class="kiosk-scene" data-scene="action" aria-labelledby="scene-action-title">
+    <div class="scene-copy wide">
+      <span class="scene-label">Possible improvement</span>
+      <h2 id="scene-action-title">Evidence-backed action</h2>
+      <p id="kiosk-action">Loading recommendation...</p>
+      <p id="kiosk-verify" class="kiosk-verify"></p>
+      <div id="kiosk-action-audiences" class="kiosk-action-audiences"></div>
+    </div>
+  </section>
+
+  <section class="kiosk-scene" data-scene="qr" aria-labelledby="scene-qr-title">
+    <div class="scene-copy">
+      <span class="scene-label">Explore</span>
+      <h2 id="scene-qr-title">Open the live dashboard</h2>
+      <p>Open room details, methodology, and the underlying data.</p>
+    </div>
+    <div class="kiosk-qr-panel">
+      <img src="/static/images/qr-code.svg?v=2" alt="Dashboard link graphic">
+      <strong>NanitesLab</strong>
+      <span id="kiosk-dashboard-url">Campus data, explanations, and trends</span>
+    </div>
+  </section>
+
+  <footer class="kiosk-footer-strip">
+    <span id="kiosk-updated">Latest reading unavailable</span>
+    <span class="kiosk-qr-note"><img src="/static/images/qr-code.svg?v=2" alt="">Open the live dashboard for details.</span>
+    <a href="/overview">Explore data</a>
+  </footer>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/api-client.js"></script>
+<script src="/static/js/charts/timeSeries.js"></script>
+<script src="/static/js/kiosk-pulse.js"></script>
+<script>initKioskPulse();</script>
+{% endblock %}

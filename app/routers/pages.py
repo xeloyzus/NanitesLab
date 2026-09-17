@@ -15,7 +15,17 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 @router.get("/")
 async def index(request: Request):
-    return templates.TemplateResponse(request, "index.html")
+    return templates.TemplateResponse(request, "kiosk.html")
+
+
+@router.get("/overview")
+async def overview(request: Request):
+    return templates.TemplateResponse(request, "overview.html")
+
+
+@router.get("/kiosk")
+async def kiosk(request: Request):
+    return templates.TemplateResponse(request, "kiosk.html")
 
 
 @router.get("/mobile")

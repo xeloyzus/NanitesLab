@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from .db.database import pool
 from .core.config import settings
 from .internal import health
-from .routers import buildings, history, pages
+from .routers import analytics, buildings, history, pages, system
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -26,9 +26,11 @@ async def lifespan(app: FastAPI):
     # Open the pool before serving and close it cleanly on shutdown.
     # In demo mode there is no database, so skip the pool entirely.
     if not settings.demo_mode:
+        if pool is None:
+            settings.require_database_url()
         await pool.open(wait=True)
     yield
-    if not settings.demo_mode:
+    if not settings.demo_mode and pool is not None:
         await pool.close()
 
 
@@ -46,8 +48,10 @@ app.add_middleware(
 # Frontend assets (CSS / JS / images).
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
+app.include_router(analytics.router)
 app.include_router(buildings.router)
 app.include_router(history.router)
 app.include_router(health.router)
+app.include_router(system.router)
 app.include_router(pages.router)
 

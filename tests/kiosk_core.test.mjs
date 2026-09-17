@@ -5,9 +5,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
 
 const require = createRequire(import.meta.url);
 const K = require("../app/static/js/kiosk-core.js");
+
+function loadApiClient() {
+  const context = {};
+  runInNewContext(readFileSync(new URL("../app/static/js/api-client.js", import.meta.url), "utf8"), context);
+  return context;
+}
 
 test("co2Color thresholds", () => {
   assert.equal(K.co2Color(600), "#00e676");
@@ -37,6 +45,34 @@ test("aggregateSeries averages devices at matching timestamps", () => {
   assert.deepEqual(K.aggregateSeries(history, "co2"), [
     { time: "2026-01-01T00:00:00Z", value: 650 },
     { time: "2026-01-01T00:15:00Z", value: 850 },
+  ]);
+});
+
+test("aggregateMetricHistory buckets near-identical sensor timestamps", () => {
+  const api = loadApiClient();
+  const history = {
+    series: [
+      {
+        metric: "co2",
+        points: [
+          { time: "2026-01-01T00:00:00.101Z", value: 600 },
+          { time: "2026-01-01T00:15:00.101Z", value: 800 },
+        ],
+      },
+      {
+        metric: "co2",
+        points: [
+          { time: "2026-01-01T00:00:00.902Z", value: 700 },
+          { time: "2026-01-01T00:15:00.902Z", value: 900 },
+        ],
+      },
+    ],
+  };
+
+  const result = JSON.parse(JSON.stringify(api.aggregateMetricHistory(history, "co2")));
+  assert.deepEqual(result, [
+    { time: "2026-01-01T00:00:00.000Z", value: 650 },
+    { time: "2026-01-01T00:15:00.000Z", value: 850 },
   ]);
 });
 

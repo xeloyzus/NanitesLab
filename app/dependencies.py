@@ -20,6 +20,8 @@ async def get_db() -> AsyncIterator[AsyncConnection]:
         # No database in demo mode; services short-circuit before using it.
         yield None
         return
+    if pool is None:
+        settings.require_database_url()
     async with pool.connection() as conn:
         yield conn
 
